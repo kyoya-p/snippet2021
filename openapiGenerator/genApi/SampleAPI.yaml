@@ -1,0 +1,4429 @@
+openapi: '3.0.3'
+
+info:
+  title: idpManager API Specification
+  description: 'このドキュメントは、idpManagerのAPI仕様書です。'
+  version: '2.11.0.18'
+
+servers:
+  - url: "{protocol}://{serviceAddress}:{port}/idpManager"
+    description: 'SRDM idpManager'
+    variables:
+      protocol:
+        enum:
+          - http
+          - https
+        default: https
+      serviceAddress:
+        description: SRDM Server Service address
+        default: <<serviceAddress>>
+      port:
+        description: SRDM Server Port
+        default: '8086'
+
+tags:
+  - name: Basic functions
+    description: '基本機能'
+
+  - name: Group functions
+    description: 'グループ機能'
+
+  - name: Schedule functions
+    description: 'スケジュール機能'
+
+  - name: Custom Filter functions
+    description: 'ユーザ定義フィルター機能'
+
+  - name: Log functions
+    description: 'ログ機能'
+
+  - name: Domain functions
+    description: 'ドメイン機能'
+
+  - name: Export functions
+    description: 'エクスポート機能'
+
+paths:
+  # Basic functions
+  /device/getDeviceList:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: 'デバイス一覧の取得'
+      description: '指定されたグループに登録されているデバイスの一覧を返す。'
+      requestBody:
+        required: true
+        content:
+          aplication/json:
+            schema:
+              $ref: '#/components/schemas/getDeviceListReq'
+      responses:
+        '200':
+          description: >-
+            デバイス一覧取得結果<br>
+            指定されたgroupIdのgroupが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/getDeviceListRsp'
+
+  /device/getDeviceDetail:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: 'デバイスの詳細情報の取得'
+      description: '指定されたデバイスの詳細情報を返す。'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getDeviceDetailReq'
+      responses:
+        '200':
+          description: >-
+            デバイス詳細情報取得結果<br>
+            指定されたdeviceIdのデバイスが存在しない場合、または、<br>
+            指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、<br>
+            E0019エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getDeviceDetailRsp'
+
+  /device/getWebPageUrl:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: 'Embedded Web PageのURLの取得'
+      description: '指定されたデバイスのEmbedded Web PageのURLを返す。'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getWebPageUrlReq'
+      responses:
+        '200':
+          description: >-
+            Embedded Web Page URL取得結果<br>
+            指定されたdeviceIdのデバイスが存在しない場合、または、<br>
+            指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、<br>
+            E0019エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getWebPageUrlRsp'
+
+  /device/registerDeviceManually:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: 'デバイスの手動登録'
+      description: >-
+        IPアドレス、ポート、ユーザ名などを入力し、デバイスを登録する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/registerDeviceManuallyReq'
+      responses:
+        '200':
+          description: >-
+            デバイスの手動登録結果<br>
+            指定されたgroupIdのグループが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/registerDeviceManuallyRsp'
+
+  /device/getDeviceRegistrationInformation:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: 'デバイス登録情報の取得'
+      description: >-
+        指定されたデバイス登録情報を返す。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getDeviceRegistrationInformationReq'
+      responses:
+        '200':
+          description: >-
+            デバイス登録情報の取得結果<br>
+            指定されたdeviceIdのデバイスが存在しない場合、または、<br>
+            指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、<br>
+            E0019エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getDeviceRegistrationInformationRsp'
+
+  /device/updateDeviceRegistrationInformation:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: 'デバイス登録情報の更新'
+      description: >-
+        指定されたデバイス登録情報を更新する。<br>
+        デバイス登録情報をリクエストパラメータの内容で更新する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateDeviceRegistrationInformationReq'
+      responses:
+        '200':
+          description: >-
+            デバイス登録情報の更新結果<br>
+            指定されたdeviceIdのデバイスが存在しない場合、または、<br>
+            指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、<br>
+            E0019エラーを返す。<br>
+            指定されたgroupIdのグループが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/updateDeviceRegistrationInformationRsp'
+
+  /device/executeUpdateInformation:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: 'デバイス情報更新の実行'
+      description: >-
+        指定されたデバイスの情報更新を実行する。<br>
+        情報更新の実行をキャンセルしたり、進捗を確認するAPIは、ありません。<br>
+        ステータス更新の結果は、デバイス毎にWebsocket経由で通知します。<br>
+        ただし、現バージョンでは、Websocketの接続を行わないため、<br>
+        ユーザ操作により、再描画（getDeviceList() API や getDeviceDetail() APIの呼び出し）をしていただく必要があります。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/executeUpdateInformationReq'
+      responses:
+        '200':
+          description: >-
+            デバイスの情報更新リクエスト結果<br>
+            groupIdが指定されており、且つ、指定されたgroupIdのグループが存在しない場合、E0019エラーを返す。<br>
+            groupIdが指定されており、且つ、指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+            deviceIdsに指定されたdeviceIdのデバイスが存在しない場合、<br>
+            または、ログインアカウントの管理対象外のデバイスの場合は、<br>
+            エラーとせず、実行対象に含まない。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/executeUpdateInformationRsp'
+
+  /device/executeManagePower:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: '電源管理コマンドの実行'
+      description: >-
+        指定されたデバイスに対して電源管理コマンドを実行する。<br>
+        電源管理コマンドの実行をキャンセルしたり、進捗を確認するAPIは、ありません。<br>
+        電源管理コマンドの結果は、デバイス毎にWebsocket経由で通知します。[TBD]<br>
+        ただし、現バージョンでは、Websocketの接続を行わないため、<br>
+        一定時間経過後、情報取得を実行し、デバイスの状態を確認していただく必要があります。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/executeManagePowerReq'
+      responses:
+        '200':
+          description: >-
+            電源管理コマンドのリクエスト結果<br>
+            groupIdが指定されており、且つ、指定されたgroupIdのグループが存在しない場合は、E0019エラーを返す。<br>
+            groupIdが指定されており、且つ、指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+            指定されたdeviceIdのデバイスが存在しない場合、<br>
+            または、ログインアカウントの管理対象外のデバイスの場合は、<br>
+            エラーにはせず、実行対象から除外する。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/executeManagePowerRsp'
+
+  /device/executeChangeInputMode:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: '入力モード切り替えコマンドの実行'
+      description: >-
+        指定されたデバイスに対して入力モード切替コマンドを実行する。<br>
+        入力モード切り替えコマンドの実行をキャンセルしたり、進捗を確認するAPIは、ありません。<br>
+        入力モード切替コマンドの結果は、デバイス毎にWebsocket経由で通知します。[TBD]<br>
+        ただし、現バージョンでは、Websocketの接続を行わないため、<br>
+        一定時間経過後、情報取得を実行し、デバイスの状態を確認していただく必要があります。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/executeChangeInputModeReq'
+      responses:
+        '200':
+          description: >-
+            入力モード切替コマンドのリクエスト結果<br>
+            groupIdが指定されており、且つ、指定されたgroupIdのグループが存在しない場合は、E0019エラーを返す。<br>
+            groupIdが指定されており、且つ、指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+            指定されたdeviceIdのデバイスが存在しない場合、<br>
+            または、ログインアカウントの管理対象外のデバイスの場合は、<br>
+            エラーにはせず、実行対象から除外する。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/executeChangeInputModeRsp'
+
+  /device/unregisterDevice:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: '登録済みデバイスの削除'
+      description: >-
+        指定された登録済みデバイスを削除する。<br>
+        削除処理の進捗は、checkProgress() APIで確認する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/unregisterDeviceReq'
+      responses:
+        '200':
+          description: >-
+            デバイス削除のリクエスト結果<br>
+            指定されたgroupIdのグループが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+            指定されたdeviceIdのデバイスが存在しない場合、<br>
+            または、ログインアカウントの管理対象外のデバイスの場合は、<br>
+            エラーにはせず、削除対象から除外する。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unregisterDeviceRsp'
+
+  /device/getUnregisterDeviceResult:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: '登録済みデバイスの削除結果の取得'
+      description: >-
+        登録済みデバイスの削除結果を取得する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getUnregisterDeviceResultReq'
+      responses:
+        '200':
+          description: >-
+            デバイス削除の実行結果<br>
+            指定されたrequestIdの処理が存在しない場合は、エラーにせず、<br>
+            成功件数、エラー件数ともに0件で返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getUnregisterDeviceResultRsp'
+
+  /device/checkProgress:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: '非同期処理の完了チェック'
+      description: >-
+        非同期処理の完了をチェックする。<br>
+        対象は、以下の処理。<br>
+        「登録済みデバイスの削除」<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/checkProgressReq'
+      responses:
+        '200':
+          description: >-
+            非同期処理の完了チェック結果<br>
+            指定されたrequestIdの処理が存在しない場合は、エラーにせず、「非同期処理実行状況」を「完了」で返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/checkProgressRsp'
+
+  /device/updateRelatedGroup:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: '参照グループの変更'
+      description: >-
+        デバイスを参照しているグループを更新する。<br>
+        グループの移動が行われたときに呼び出される。<br>
+        リクエストパラメータにある targetGroupId を groupList に持つデバイスを対象デバイスとし、<br>
+        deleteGroupIdList に指定されている groupId の情報を groupList から削除し、<br>
+        addGroupIdList に指定されている groupId のグループ情報を groupList に追加する。<br>
+        追加するグループ情報は、<br>
+            {<br>
+                "groupId": <<追加するグループのgroupId>>,<br>
+                "attribute": "enable",<br>
+                "deviceAttr": <<targetGroupId の deviceAttr と同じ値>>,<br>
+                "detectedBy": [<<targetGroupId の detectedBy と同じ値>>]<br>
+            }<br>
+        とする。<br>
+        addGroupIdList に指定された groupId が既に groupList に存在する場合、deviceAttr と detectedBy を以下のように更新する。<br>
+        addGroupIdList に指定された groupId の deviceAttr が managed の場合、変更なし。trash の場合、targetGroupId の deviceAttr が managed であれば、managed に変更する。<br>
+        addGroupIdList に指定された groupId の detectedBy と targetGroupId の detectedBy をマージする。<br>
+        deleteGroupIdList に指定された groupId の detectedBy が targetGroupId の detectedBy と同じ場合は、groupList から削除する。<br>
+        deleteGroupIdList に指定された groupId の detectedBy が targetGroupId の detectedBy と異なる場合は、指定された groupId の detectedBy から targetGroupId の detectedBy に含まれる groupId を削除する。<br>
+        現状は、内部からの呼び出しを想定。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateRelatedGroupReq'
+      responses:
+        '200':
+          description: >-
+            参照グループの変更結果<br>
+            指定されたtargetGroupIdのグループが存在しない場合、E0019エラーを返す。<br>
+            指定されたtargetGroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/updateRelatedGroupRsp'
+
+  /device/applyScheduleSet:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: 'スケジュールセットの反映'
+      description: >-
+        指定されたスケジュールセットの内容をデバイスのスケジュールとして設定する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/applyScheduleSetReq'
+      responses:
+        '200':
+          description: >-
+            スケジュールセット反映の結果<br>
+            指定されたスケジュールセットIDが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdのグループが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+            指定されたdeviceIdが存在しない場合、または、ログインアカウントの管理対象外のデバイスの場合でもエラーにしない。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/applyScheduleSetRsp'
+
+  /device/getSchedule:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: 'デバイス設定済みスケジュールの取得'
+      description: >-
+        デバイスに設定されているスケジュールを返す。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getScheduleReq'
+      responses:
+        '200':
+          description: >-
+            デバイス設定済みのスケジュールの取得結果<br>
+            指定されたdeviceIdのデバイスが存在しない場合、または、<br>
+            指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、<br>
+            E0019エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getScheduleRsp'
+
+  /device/updateSchedule:
+    post:
+      tags:
+        - 'Basic functions'
+      summary: 'デバイス設定済みスケジュールの更新'
+      description: >-
+        指定されたデバイスのスケジュールを更新する。<br>
+        設定済みのスケジュールを削除する場合も本APIを使用する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateScheduleReq'
+      responses:
+        '200':
+          description: >-
+            デバイス設定済みスケジュールの更新結果<br>
+            指定されたdeviceIdのデバイスが存在しない場合、または、<br>
+            指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、<br>
+            E0019エラーを返す。<br>
+            groupIdが指定されており、且つ、指定されたgroupIdのグループが存在しない場合は、E0019エラーを返す。<br>
+            groupIdが指定されており、且つ、指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/updateScheduleRsp'
+
+
+  # Group functions
+  /group/getSRDMGroupList:
+    post:
+      tags:
+        - 'Group functions'
+      summary: 'SRDM グループリストの取得'
+      description: >-
+        SRDMのグループリスト（グループ情報）を返す。<br>
+        対象となるグループタイプは、通常グループのみとする。（外部参照グループは、含まれない）<br>
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getSRDMGroupListReq'
+      responses:
+        '200':
+          description: >-
+            SRDM グループリストの取得結果<br>
+            指定されたgroupIdのグループが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getSRDMGroupListRsp'
+
+  /group/createGroup:
+    post:
+      tags:
+        - 'Group functions'
+      summary: 'グループ作成'
+      description: >-
+        IDP関連のグループ情報を作成する。<br>
+        データベースの「IDP用グループ情報」に新たなグループ情報を作成し、デフォルトのスケジュールを設定する。<br>
+        現状は、内部からの呼び出しを想定。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createGroupReq'
+      responses:
+        '200':
+          description: >-
+            グループ作成の結果<br>
+            指定されたgroupIdのグループが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。
+            指定されたgroupIdのグループが既に存在する場合は、何もせずに正常終了する。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createGroupRsp'
+
+  /group/removeGroup:
+    post:
+      tags:
+        - 'Group functions'
+      summary: 'グループ削除'
+      description: >-
+        IDP関連のグループ情報を削除する。<br>
+        グループの削除に関する操作（ゴミ箱へ移動／元に戻す／ゴミ箱から削除）が行われたとき呼び出される。<br>
+        削除操作で実施する処理は、以下の通り。
+          - グループの属性を変更し、スケジュールの有効／無効を切り替える。<br>
+          - 指定グループから参照されているデバイスのグループ状態を変更する。<br>
+            リクエストパラメータにあるgroupIdListに指定されたgroupIdを持つデバイスのgroupListを更新する。<br>
+
+        現状は、内部からの呼び出しを想定。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/removeGroupReq'
+      responses:
+        '200':
+          description: >-
+            グループ削除の結果<br>
+            指定されたgroupIdに対して以下のチェックを行う。（チェックで参照するDBは、iPAUGroupCollection）<br>
+              - "operation"が"moveTrash"の場合
+                + 指定されたgroupIdがattribute="trash"で存在しない場合は、E0019エラーとする。
+                + 指定されたgroupIdが管理対象外のグループの場合は、E0050エラーとする。
+              - "operation"が"resotre"の場合
+                + 指定されたgroupIdがattribute="managed"で存在しない場合は、E0019エラーとする。
+                + 指定されたgroupIdが管理対象外のグループの場合は、E0050エラーとする。
+              - "operation"が"delete"の場合
+                + 指定されたgroupIdがattributeの値に関係なく、DB内に存在する場合は、E0017エラーとする。
+
+            途中でエラーになるグループがあったとしても処理を継続する。ただし、レスポンスには、検出したエラーを返す。<br>
+            idpGroupInfoに指定されたgroupIdのグループが存在しなくてもエラーにしない。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/removeGroupRsp'
+
+
+  # Schedule functions
+  /schedule/getScheduleList:
+    post:
+      tags:
+        - 'Schedule functions'
+      summary: 'スケジュール一覧を取得する'
+      description: >-
+        指定されたグループに登録されているスケジュールを返す。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getScheduleListReq'
+      responses:
+        '200':
+          description: >-
+            スケジュール一覧の取得結果<br>
+            指定されたgroupIdのグループが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getScheduleListRsp'
+
+  /schedule/setSchedule:
+    post:
+      tags:
+        - 'Schedule functions'
+      summary: 'スケジュールの有効／無効設定'
+      description: >-
+        指定されたグループに登録されているスケジュールの有効／無効を設定する<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/setScheduleReq'
+      responses:
+        '200':
+          description: >-
+            スケジュールの有効／無効の設定結果<br>
+            指定されたgroupIdのグループが存在しない場合、または、<br>
+            指定されたscheduleIdのスケジュールが存在しない場合は、<br>
+            E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/setScheduleRsp'
+
+  /schedule/getScheduleItem:
+    post:
+      tags:
+        - 'Schedule functions'
+      summary: 'スケジュール項目の取得'
+      description: >-
+        指定されたスケジュールの各項目の値を返す。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getScheduleItemReq'
+      responses:
+        '200':
+          description: >-
+            スケジュール項目の取得結果<br>
+            指定されたgroupIdのグループが存在しない場合、<br>
+            または、指定されたscheduleIdのスケジュールが存在しない場合は、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getScheduleItemRsp'
+
+  /schedule/updateScheduleItem:
+    post:
+      tags:
+        - 'Schedule functions'
+      summary: 'スケジュール項目の更新'
+      description: >-
+        指定されたスケジュールの各項目を更新する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateScheduleItemReq'
+      responses:
+        '200':
+          description: >-
+            スケジュール項目の更新結果<br>
+            指定されたgroupIdのグループが存在しない場合、<br>
+            または、指定されたscheduleIdのスケジュールが存在しない場合は、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/updateScheduleItemRsp'
+
+  /schedule/getScheduleSetList:
+    post:
+      tags:
+        - 'Schedule functions'
+      summary: 'スケジュールセット一覧の取得'
+      description: >-
+        ログインアカウントのドメインに紐づくスケジュールセットを返す。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getScheduleSetListReq'
+      responses:
+        '200':
+          description: >-
+            スケジュールセット一覧の取得結果<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getScheduleSetListRsp'
+
+  /schedule/createScheduleSet:
+    post:
+      tags:
+        - 'Schedule functions'
+      summary: 'スケジュールセットの作成'
+      description: >-
+        ログインアカウントのドメインに紐づくスケジュールセットを作成する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createScheduleSetReq'
+      responses:
+        '200':
+          description: >-
+            スケジュールセット作成の結果<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createScheduleSetRsp'
+
+  /schedule/getScheduleSet:
+    post:
+      tags:
+        - 'Schedule functions'
+      summary: 'スケジュールセットの取得'
+      description: >-
+        ログインアカウントのドメインに紐づくスケジュールセットのから指定されたスケジュールセットを返す。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getScheduleSetReq'
+      responses:
+        '200':
+          description: >-
+            スケジュールセットの取得結果<br>
+            指定されたscheduleSetIdのスケジュールセットが<br>
+            ログインアカウントのドメインに存在しない場合は、E0019エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getScheduleSetRsp'
+
+  /schedule/updateScheduleSet:
+    post:
+      tags:
+        - 'Schedule functions'
+      summary: 'スケジュールセットの更新'
+      description: >-
+        指定されたスケジュールセットを更新する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateScheduleSetReq'
+      responses:
+        '200':
+          description: >-
+            スケジュールセットの更新結果<br>
+            指定されたscheduleSetIdのスケジュールセットが<br>
+            ログインアカウントのドメインに存在しない場合は、E0019エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/updateScheduleSetRsp'
+
+  /schedule/deleteScheduleSet:
+    post:
+      tags:
+        - 'Schedule functions'
+      summary: 'スケジュールセットの削除'
+      description: >-
+        ログインアカウントのドメインに紐づくスケジュールセットから指定されたスケジュールセットを削除する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deleteScheduleSetReq'
+      responses:
+        '200':
+          description: >-
+            スケジュールセット削除の結果<br>
+            指定されたscheduleSetIdのスケジュールセットが存在しない場合もエラーにはしない。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deleteScheduleSetRsp'
+
+
+  # Custom Filter functions
+  /filter/createFilter:
+    post:
+      tags:
+        - 'Custom Filter functions'
+      summary: 'ユーザ定義フィルターの作成'
+      description: >-
+        ユーザ定義フィルターを作成する。<br>
+        一度に作成できるフィルターは、１件。<br>
+        作成したフィルターは、ログインアカウントが属するドメインに作成される。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createFilterReq'
+      responses:
+        '200':
+          description: >-
+            ユーザ定義フィルターの作成結果<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createFilterRsp'
+
+  /filter/setFilter:
+    post:
+      tags:
+        - 'Custom Filter functions'
+      summary: 'ユーザ定義フィルターの更新'
+      description: >-
+        ユーザ定義フィルターを更新する。<br>
+        更新可能なフィルターは、ログインアカウントが属するドメインに存在するフィルターのみ。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/setFilterReq'
+      responses:
+        '200':
+          description: >-
+            ユーザ定義フィルターの更新結果<br>
+            指定されたfilterIdがログインアカウントのドメインに存在しない場合は、E0019エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/setFilterRsp'
+
+  /filter/deleteFilter:
+    post:
+      tags:
+        - 'Custom Filter functions'
+      summary: 'ユーザ定義フィルターの削除'
+      description: >-
+        指定されたユーザ定義フィルターを削除する。<br>
+        削除可能なフィルターは、ログインアカウントが属するドメインに存在するフィルターのみ。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deleteFilterReq'
+      responses:
+        '200':
+          description: >-
+            ユーザ定義フィルターの削除結果<br>
+            指定されたfilterIdがログインアカウントのドメインに存在しない場合でもエラーにしない。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deleteFilterRsp'
+
+  /filter/getFilter:
+    post:
+      tags:
+        - 'Custom Filter functions'
+      summary: 'ユーザ定義フィルター一覧の取得'
+      description: >-
+        ログインアカウントが属するドメインに紐づくフィルターの一覧を返す。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getFilterReq'
+      responses:
+        '200':
+          description: >-
+            ユーザ定義フィルター一覧の取得結果<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getFilterRsp'
+
+
+  # Log functions
+  /log/getDeviceLog:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'デバイスログ一覧の取得'
+      description: >-
+        指定されたデバイスのデバイスログ一覧を返す。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getDeviceLogReq'
+      responses:
+        '200':
+          description: >-
+            デバイスログ一覧の取得結果<br>
+            指定されたgroupIdのgroupが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+            指定されたdeviceIdのデバイスが存在しない場合は、または、<br>
+            指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、<br>
+            E0019エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getDeviceLogRsp'
+
+  /log/getDeviceOperationLog:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'デバイス操作ログ一覧の取得'
+      description: >-
+        指定されたデバイスの操作ログ一覧を返す。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getDeviceOperationLogReq'
+      responses:
+        '200':
+          description: >-
+            デバイス操作ログ一覧の取得結果<br>
+            指定されたdeviceIdのデバイスが存在しない場合は、または、<br>
+            指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、<br>
+            E0019エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getDeviceOperationLogRsp'
+
+  /log/getGroupOperationLog:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'グループ操作ログ一覧の取得'
+      description: >-
+        指定されたグループの操作ログ一覧を返す。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getGroupOperationLogReq'
+      responses:
+        '200':
+          description: >-
+            グループ操作ログ一覧の取得結果<br>
+            指定されたgroupIdのgroupが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getGroupOperationLogRsp'
+
+  /log/getDomainOperationLog:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'ドメイン操作ログ一覧の取得'
+      description: >-
+        ログインアカウントが属するドメインの操作ログ一覧を返す。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getDomainOperationLogReq'
+      responses:
+        '200':
+          description: >-
+            ドメイン操作ログ一覧の取得結果<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getDomainOperationLogRsp'
+
+  /log/getDeviceLogDetail:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'デバイスログ詳細の取得'
+      description: >-
+        指定されたデバイスログの詳細を返す。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getDeviceLogDetailReq'
+      responses:
+        '200':
+          description: >-
+            デバイスログ詳細の取得結果<br>
+            指定されたデバイスログIDのログが存在しない場合、E0019エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getDeviceLogDetailRsp'
+
+  /log/getDeviceOperationLogDetail:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'デバイス操作ログ詳細の取得'
+      description: >-
+        指定されたデバイス操作ログの詳細を返す。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getDeviceOperationLogDetailReq'
+      responses:
+        '200':
+          description: >-
+            デバイス操作ログ詳細の取得結果<br>
+            指定された操作ログIDのログが存在しない場合、E0019エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getDeviceOperationLogDetailRsp'
+
+  /log/getGroupOperationLogDetail:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'グループ操作ログ詳細の取得'
+      description: >-
+        指定されたグループ操作ログの詳細を返す。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getGroupOperationLogDetailReq'
+      responses:
+        '200':
+          description: >-
+            グループ操作ログ詳細の取得結果<br>
+            指定された操作ログIDのログが存在しない場合、E0019エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getGroupOperationLogDetailRsp'
+
+  /log/getDomainOperationLogDetail:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'ドメイン操作ログ詳細の取得'
+      description: >-
+        指定されたドメイン操作ログの詳細を返す。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getDomainOperationLogDetailReq'
+      responses:
+        '200':
+          description: >-
+            ドメイン操作ログ詳細の取得結果<br>
+            指定された操作ログIDのログが存在しない場合、E0019エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getDomainOperationLogDetailRsp'
+
+  /log/deleteDeviceLog:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'デバイスログの削除'
+      description: >-
+        指定されたデバイスのデバイスログを削除する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deleteDeviceLogReq'
+      responses:
+        '200':
+          description: >-
+            デバイスログの削除結果<br>
+            groupIdが指定されている場合、以下のチェックを実施する。
+              - 指定されたgroupIdのgroupが存在しない場合、E0019エラーを返す。
+              - 指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。
+
+            deviceIdが指定されている場合、以下のチェックを実施する。
+              - 指定されたdeviceIdのデバイスが存在しない場合は、または、
+                指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、
+                E0019エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deleteDeviceLogRsp'
+
+  /log/deleteDeviceOperationLog:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'デバイス操作ログの削除'
+      description: >-
+        指定されたデバイスの操作ログを削除する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deleteDeviceOperationLogReq'
+      responses:
+        '200':
+          description: >-
+            デバイス操作ログの削除結果<br>
+            指定されたdeviceIdのデバイスが存在しない場合は、または、<br>
+            指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、<br>
+            E0019エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deleteDeviceOperationLogRsp'
+
+  /log/deleteGroupOperationLog:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'グループ操作ログの削除'
+      description: >-
+        指定されたグループの操作ログを削除する。<br>
+        配下のグループの操作ログは削除しない。
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deleteGroupOperationLogReq'
+      responses:
+        '200':
+          description: >-
+            グループ操作ログの削除結果<br>
+            指定されたgroupIdのgroupが存在しない場合、E0019エラーを返す。<br>
+            指定されたgroupIdがログインアカウントの管理対象外のgroupIdの場合、E0050エラーを返す。<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deleteGroupOperationLogRsp'
+
+  /log/deleteDomainOperationLog:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'ドメイン操作ログの削除'
+      description: >-
+        ログインアカウントが属するドメインの操作ログを削除する。<br>
+        配下のドメインの操作ログは削除しない。
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/deleteDomainOperationLogReq'
+      responses:
+        '200':
+          description: >-
+            ドメイン操作ログの削除結果<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deleteDomainOperationLogRsp'
+
+  /log/startDeleteLog:
+    post:
+      tags:
+        - 'Log functions'
+      summary: 'IDP関連の全ログ削除'
+      description: >-
+        IDP関連で記録する操作ログ、および履歴データの削除を行う。
+        指定された「ログを残す期間」よりも前のデータを削除する。<br>
+        スケジュールサービスから呼び出すことて定期的に実行する。
+        （スケジュールサービスからの呼び出しを想定。）<br>
+        カスタム設定ファイル"srdmConf/deleteLog_custom.properties"[TBD]が存在し、"period.idp"が指定されている場合は、
+        この値を使用する。<br>
+        本APIの実行には、「グループ管理権限」が必要。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/startDeleteLogReq'        
+      responses:
+        '200':
+          description: >-
+            定期ログ削除のリクエスト結果<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/startDeleteLogRsp'
+
+
+  # Domain functions
+  /domain/getThemeSetting:
+    post:
+      tags:
+        - 'Domain functions'
+      summary: 'UIテーマ設定の取得'
+      description: >-
+        ログインアカウントが属するドメインに設定されているUIテーマを取得する。<br>
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getThemeSettingReq'
+      responses:
+        '200':
+          description: >-
+            UIテーマ設定の取得結果<br>
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getThemeSettingRsp'
+  
+  /domain/setThemeSetting:
+    post:
+      tags:
+        - 'Domain functions'
+      summary: 'UIテーマの設定'
+      description: >-
+        ログインアカウントが属するドメインのUIテーマを設定する。<br>
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/setThemeSettingReq'
+      responses:
+        '200':
+          description: >-
+            UIテーマの設定結果<br>
+          content:
+            aplication/json:
+              schema:
+                $ref: '#/components/schemas/setThemeSettingRsp'
+
+
+  # Export functions
+  /export/exportDeviceDataHistory:
+    post:
+      tags:
+        - Export functions
+      summary: 'デバイス情報履歴のエクスポート'
+      description: >-
+        指定デバイスのデバイス情報履歴のエクスポートをリクエストする。<br>
+        エクスポートデータは、/export/downloadExportData を使用して取得する。<br>
+        ファイルフォーマットは「SRDM_IDP_FileFormat.xlsx」を参照。[TBD]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/exportDeviceDataHistoryReq'
+      responses:
+        '200':
+          description: >-
+            デバイス情報履歴エクスポートのリクエスト結果<br>
+            指定されたdeviceIdのデバイスが存在しない場合、または、<br>
+            指定されたdeviceIdがログインアカウントの管理対象外のdeviceIdの場合は、<br>
+            E0019エラーを返す。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exportDeviceDataHistoryRsp'
+  
+  /export/downloadExportData:
+    get:
+      tags:
+        - Export functions
+      summary: 'エクスポートデータの取得'
+      description: >-
+        /export/exportDeviceDataHistory を呼び出して取得したリクエストIDをパラメータに指定し、エクスポートデータを取得する。<br>
+      parameters:
+      - name: requestId
+        in: query
+        description: 'リクエストID'
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: >-
+            エクスポートデータ<br>
+            指定されたrequestIdに対するデータが存在しない場合は、E0019エラーを返す。
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: json
+
+
+components:
+  schemas:
+    # request pamameters
+    # Basic functions
+    getDeviceListReq:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+          description: >-
+            開始インデックス<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 1
+        count:
+          type: integer
+          description: >-
+            要求件数<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 10
+        groupId:
+          type: string
+          description: >-
+            対象グループのgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        filterId:
+          type: string
+          description: 'ユーザフィルターのfilterId'
+        attribute:
+          type: string
+          description: >-
+            取得対象の属性
+              - managed：管理デバイス
+              - trash：削除済み（ゴミ箱内）のデバイス
+
+            ●チェック内容
+              - 指定値以外は、エラー
+          enum:
+            - managed
+            - trash
+        simpleFilters:
+          type: array
+          description: 'シンプルフィルター'
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                description: >-
+                  フィルターキー<br>
+                  指定可能な項目は、以下の通り。
+
+                  - フィルターキー一覧
+                    <table border="1">
+                      <tr><th>キー</th><th>説明</th></tr>
+                      <tr><td>modelName</td><td>モデル名</td></tr>
+                      <tr><td>serialNumber</td><td>シリアル番号</td></tr>
+                      <tr><td>ipAddress</td><td>IPアドレス</td></tr>
+                      <tr><td>friendlyName</td><td>名称</td></tr>
+                      <tr><td>powerStatus</td><td>電源状態</td></tr>
+                      <tr><td>communicationStatus</td><td>通信状態</td></tr>
+                    </table>
+
+                  ●チェック内容
+                    - 指定値以外は、エラー
+              value:
+                type: string
+                description: >-
+                  フィルタリング対象文字列<br>
+                  各フィルターキーで指定可能な文字列は、以下の通り。
+
+                  - フィルタリング対象文字列
+                    <table border="1">
+                      <tr><th>キー</th><th>対象文字列</th></tr>
+                      <tr><td>modelName</td><td>入力値を指定</td></tr>
+                      <tr><td>serialNumber</td><td>入力値を指定</td></tr>
+                      <tr><td>ipAddress</td><td>入力値を指定</td></tr>
+                      <tr><td>friendlyName</td><td>入力値を指定</td></tr>
+                      <tr><td>powerStatus</td><td>次のいずれかの値を指定<br>STANDBY, NORMAL, NOSIGNAL</td></tr>
+                      <tr><td>communicationStatus</td><td>次のいずれかの値を指定<br>ok, communicationError(*1)</td></tr>
+                    </table>
+
+                    *1)"communicationError"を指定した場合、<br>
+                    通信状態がエラーのデバイスが抽出される。<br>
+
+                  ●チェック内容
+                    - modelName, serialNumber, ipAddress, friendlyName
+                      + null、空文字は、エラー
+                      + マルチバイト文字含め、印刷可能な文字は指定可能
+                      + 空白のみは、許可
+                    - powerStatus, communicationStatus
+                      + 指定値以外は、エラー
+            required:
+              - key
+              - value
+
+        orderBy:
+          type: array
+          description: 'ソート指定'
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                description: >-
+                  ソートキー<br>
+                  指定可能な項目は、以下の通り。
+
+                  - ソートキー一覧
+                    <table border="1">
+                      <tr><th>キー</th><th>説明</th></tr>
+                      <tr><td>modelName</td><td>モデル名</td></tr>
+                      <tr><td>serialNumber</td><td>シリアル番号</td></tr>
+                      <tr><td>ipAddress</td><td>IPアドレス<br>IPアドレスを数値化した値でソート</td></tr>
+                      <tr><td>friendlyName</td><td>名称</td></tr>
+                      <tr><td>powerStatus</td><td>電源状態(*1)</td></tr>
+                      <tr><td>communicationStatus</td><td>通信状態(*2)</td></tr>
+                    </table>
+
+                    *1)電源状態の優先順位は、以下の通りとする。
+                        <table border="1">
+                          <tr><th>優先順位</th><th>値</th></tr>
+                          <tr><td>1</td><td>STANDBY</td></tr>
+                          <tr><td>2</td><td>NORMAL</td></tr>
+                          <tr><td>3</td><td>NOSIGNAL</td></tr>
+                          <tr><td>4</td><td>UNSELECTED</td></tr>
+                          <tr><td>5</td><td>ERR</td></tr>
+                          <tr><td>6</td><td>UNKNOWN</td></tr>
+                        </table>
+                        「ソート順」に"ascending"を指定した場合、優先順位の値が小さいものから順に表示する。<br>
+
+                    *2)通信状態は、エラーコード順にソートする。<br>
+
+                  ●チェック内容
+                    - 指定値以外は、エラー
+              order:
+                type: string
+                description: >-
+                  ソート順<br>
+                    - ascending:昇順
+                    - descending:降順
+
+                  ●チェック内容
+                    - 指定値以外は、エラー
+                enum:
+                  - ascending
+                  - descending
+            required:
+              - key
+              - order
+      required:
+        - groupId
+        - attribute
+
+    getDeviceDetailReq:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          description: >-
+            対象のdeviceId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - deviceId
+
+    getWebPageUrlReq:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          description: >-
+            対象のdeviceId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - deviceId
+
+    registerDeviceManuallyReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            登録先のgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        registerTargetList:
+          type: array
+          items:
+            type: object
+            description: >-
+              登録するデバイスの情報<br>
+              ●チェック内容
+                - nullは、エラー
+                - 空のリストは、許可
+            properties:
+              targetAddress:
+                type: string
+                description: >-
+                  ターゲットアドレス（IPアドレス）<br>
+                  ●チェック内容
+                    - null、空文字はエラー
+                    - 以下の文字以外は、エラー
+                      + アルファベット大文字（”A”～”Z”）
+                      + アルファベット小文字（”a”～”z”）
+                      + 数字（”0”～”9”）
+                      + ハイフン（”-”）
+                      + ピリオド（”.”）
+              port:
+                type: integer
+                description: >-
+                  ポート<br>
+                  ●チェック内容
+                    - 数値以外は、エラー
+              userName:
+                type: string
+                description: >-
+                  ユーザ名<br>
+                  ●チェック内容
+                    - 空文字は、許可
+                    - nullは、エラー
+                    - 以下の文字以外は、エラー
+                      + アルファベット大文字（”A”～”Z”）
+                      + アルファベット小文字（”a”～”z”）
+                      + 数字（”0”～”9”）
+                      + ハイフン（”-”）
+                      + アンダースコア（”_”）
+              password:
+                type: string
+                description: >-
+                  パスワード<br>
+                  ●チェック内容
+                    - 空文字は、許可
+                    - nullは、エラー
+                    - 以下の文字以外は、エラー
+                      + アルファベット大文字（”A”～”Z”）
+                      + アルファベット小文字（”a”～”z”）
+                      + 数字（”0”～”9”）
+                      + ハイフン（”-”）
+                      + アンダースコア（”_”）
+              friendlyName:
+                type: string
+                description: >-
+                  名称<br>
+                  ●チェック内容
+                  - 空文字は、許可
+                  - nullは、エラー
+                  - マルチバイト文字含め、印刷可能な文字は指定可能
+            required:
+              - targetAddress
+              - port
+              - userName
+              - password
+              - firendlyName
+      required:
+        - groupId
+        - registerTargetList
+
+    getDeviceRegistrationInformationReq:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          description: >-
+            対象のdeviceId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - deviceId
+
+    updateDeviceRegistrationInformationReq:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          description: >-
+            対象のdeviceId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        groupId:
+          type: string
+          description: >-
+            操作実施グループのgroupId<br>
+            groupIdを指定した場合、指定されたgroupIdのグループ操作ログに記録する。<br>
+            null、空文字の場合、groupIdが指定されていないものとし、グループ操作ログの記録は行わない。<br>
+        targetAddress:
+          type: string
+          description: >-
+            ターゲットアドレス（IPアドレス）<br>
+            ●チェック内容
+              - null、空文字はエラー
+              - 以下の文字以外は、エラー
+                + アルファベット大文字（”A”～”Z”）
+                + アルファベット小文字（”a”～”z”）
+                + 数字（”0”～”9”）
+                + ハイフン（”-”）
+                + ピリオド（”.”）
+        port:
+          type: integer
+          description: >-
+            ポート<br>
+            ●チェック内容
+              - 数値以外は、エラー
+        userName:
+          type: string
+          description: >-
+            ユーザ名<br>
+            ●チェック内容
+              - 空文字は、許可
+              - nullは、エラー
+              - 以下の文字以外は、エラー
+                + アルファベット大文字（”A”～”Z”）
+                + アルファベット小文字（”a”～”z”）
+                + 数字（”0”～”9”）
+                + ハイフン（”-”）
+                + アンダースコア（”_”）
+        changePassword:
+          type: boolean
+          description: >-
+            パスワードの変更有無を指定。
+              - true：パスワード変更有
+              - false：パスワード変更なし
+
+            ●チェック内容
+              - true/false以外は、エラー
+          enum:
+            - true
+            - false
+        password:
+          type: string
+          description: >-
+            パスワード<br>
+            changePasswordが"false"の場合、本パラメータの内容チェックを行わず、参照もしない。<br>
+            changePasswordが"true"の場合、「●チェック内容」に記載のチェックを実施する。<br>
+            ●チェック内容
+              - 空文字は、許可
+              - nullは、エラー
+              - 以下の文字以外は、エラー
+                + アルファベット大文字（”A”～”Z”）
+                + アルファベット小文字（”a”～”z”）
+                + 数字（”0”～”9”）
+                + ハイフン（”-”）
+                + アンダースコア（”_”）
+        friendlyName:
+          type: string
+          description: >-
+            名称<br>
+            ●チェック内容
+              - 空文字は、許可
+              - nullは、エラー
+              - マルチバイト文字含め、印刷可能な文字は指定可能
+      required:
+        - deviceId
+        - targetAddress
+        - port
+        - userName
+        - changePassword
+        - friendlyName
+
+    executeUpdateInformationReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            対象のgroupId<br>
+            null、空文字の場合、groupIdが指定されていないものとする。<br>
+            groupIdが指定されている場合、指定されたgroupIdのグループで登録されたデバイスを対象とする。<br>
+            下位のグループが存在する場合、下位のグループに登録されたデバイスに対しても実行する。<br>
+            （結果、操作を実行したグループで参照しているデバイス全てが更新される）<br>
+            groupIdが指定されている場合、指定されたgroupIdのグループ操作ログを記録する。<br>
+            groupIdが指定されていない場合、グループ操作ログの記録は行わない。
+        deviceIds:
+          type: array
+          description: >-
+            対象deviceIdのリスト<br>
+            ●チェック内容
+              - null、空のリストは、許可
+          items:
+            type: string
+            description: >-
+              対象のdeviceId<br>
+              ●チェック内容
+                - null、空文字はエラー
+        isExclude:
+          type: boolean
+          description: >-
+            deviceIdsの内容指定。
+              - true：deviceIdsは、非選択デバイス
+              - false：deviceIdsは、選択デバイス
+
+            ●チェック内容
+              - true/false以外は、エラー
+          enum:
+            - true
+            - false
+      required:
+        - isExclude
+
+    executeManagePowerReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            対象のgroupId<br>
+            null、空文字の場合、groupIdが指定されていないものとする。<br>
+            groupIdが指定されている場合、指定されたgroupIdのグループで登録されたデバイスを対象とする。<br>
+            下位のグループが存在する場合、下位のグループに登録されたデバイスに対しても実行する。<br>
+            （結果、操作を実行したグループで参照しているデバイス全てが更新される）<br>
+            groupIdが指定されている場合、指定されたgroupIdのグループ操作ログを記録する。<br>
+            groupIdが指定されていない場合、グループ操作ログの記録は行わない。
+        command:
+          type: string
+          description: >-
+            実行コマンド
+              - standby：電源待機状態へ移行
+              - powerOn：電源オン状態へ移行
+
+            ●チェック内容
+              - 指定文字列以外は、エラー
+          enum:
+            - standby
+            - powerOn
+        deviceIds:
+          type: array
+          description: >-
+            対象deviceIdのリスト<br>
+            ●チェック内容
+              - nullは、エラー
+              - 空のリストは、許可
+          items:
+            type: string
+            description: >-
+              対象のdeviceId<br>
+              ●チェック内容
+                - null、空文字はエラー
+        isExclude:
+          type: boolean
+          description: >-
+            deviceIdsの内容指定。
+              - true：deviceIdsは、非選択デバイス
+              - false：deviceIdsは、選択デバイス
+
+            ●チェック内容
+              - true/false以外は、エラー
+          enum:
+            - true
+            - false
+      required:
+        - command
+        - deviceIds
+        - isExclude
+
+    executeChangeInputModeReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            対象のgroupId<br>
+            null、空文字の場合、groupIdが指定されていないものとする。<br>
+            groupIdが指定されている場合、指定されたgroupIdのグループで登録されたデバイスを対象とする。<br>
+            下位のグループが存在する場合、下位のグループに登録されたデバイスに対しても実行する。<br>
+            （結果、操作を実行したグループで参照しているデバイス全てが更新される）<br>
+            groupIdが指定されている場合、指定されたgroupIdのグループ操作ログを記録する。<br>
+            groupIdが指定されていない場合、グループ操作ログの記録は行わない。
+        command:
+          type: string
+          description: >-
+            実行コマンド
+              - 実行コマンド一覧
+                <table border="1">
+                  <tr><th>コマンド</th><th>説明</th></tr>
+                  <tr><td>toggleChange</td><td>トグルで入力切替</td></tr>
+                  <tr><td>DVI-D</td><td>DVI-D</td></tr>
+                  <tr><td>D-SUB1</td><td>D-SUB[RGB]</td></tr>
+                  <tr><td>D-SUB2</td><td>D-SUB[COMPONENT]</td></tr>
+                  <tr><td>D-SUB3</td><td>D-SUB[VIDEO]</td></tr>
+                  <tr><td>HDMI-AV</td><td>HDMI[AV]</td></tr>
+                  <tr><td>HDMI1</td><td>HDMI1 (or HDMI[PC])</td></tr>
+                  <tr><td>USB</td><td>USB (or Media Player)</td></tr>
+                  <tr><td>HDMI2</td><td>HDMI2</td></tr>
+                  <tr><td>D-PORT1</td><td>DisplayPort1</td></tr>
+                  <tr><td>HDMI3</td><td>HDMI3</td></tr>
+                  <tr><td>OPTION</td><td>OPTION</td></tr>
+                  <tr><td>D-PORT2</td><td>DisplayPort2</td></tr>
+                  <tr><td>APPLICATION</td><td>APPLICATION</td></tr>
+                  <tr><td>TV</td><td>TV</td></tr>
+                </table>
+
+            ●チェック内容
+              - 指定文字列以外は、エラー
+        deviceIds:
+          type: array
+          description: >-
+            対象deviceIdのリスト<br>
+            ●チェック内容
+              - nullは、エラー
+              - 空のリストは、許可
+          items:
+            type: string
+            description: >-
+              対象のdeviceId<br>
+              ●チェック内容
+                - null、空文字はエラー
+        isExclude:
+          type: boolean
+          description: >-
+            deviceIdsの内容指定。
+              - true：deviceIdsは、非選択デバイス
+              - false：deviceIdsは、選択デバイス
+
+            ●チェック内容
+              - true/false以外は、エラー
+          enum:
+            - true
+            - false
+      required:
+        - command
+        - deviceIds
+        - isExclude
+
+    unregisterDeviceReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            対象のgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        operation:
+          type: string
+          description: >-
+            操作
+              - moveTrash：ゴミ箱へ移動
+              - restore：ゴミ箱から戻す
+              - delete：ゴミ箱から削除
+
+            ●チェック内容
+              - 指定文字列以外は、エラー
+          enum:
+            - moveTrash
+            - restore
+            - delete
+        deviceIds:
+          type: array
+          description: >-
+            対象deviceIdのリスト<br>
+            ●チェック内容
+              - nullは、エラー
+              - 空のリストは、許可
+          items:
+            type: string
+            description: >-
+              対象のdeviceId<br>
+              ●チェック内容
+                - null、空文字はエラー
+        isExclude:
+          type: boolean
+          description: >-
+            deviceIdsの内容指定。
+              - true：deviceIdsは、非選択デバイス
+              - false：deviceIdsは、選択デバイス
+
+            ●チェック内容
+              - true/false以外は、エラー
+          enum:
+            - true
+            - false
+      required:
+        - groupId
+        - operation
+        - deviceIds
+        - isExclude
+
+    getUnregisterDeviceResultReq:
+      type: object
+      properties:
+        requestId:
+          type: integer
+          description: >-
+            unregisterDevice()APIで発行されたrequestId<br>
+            ●チェック内容
+              - 数値以外は、エラー
+      required:
+        - requestId
+
+    checkProgressReq:
+      type: object
+      properties:
+        requestId:
+          type: integer
+          description: >-
+            非同期処理実行APIのレスポンスパラメータにあるrequestId<br>
+            ●チェック内容
+              - 数値以外は、エラー
+      required:
+        - requestId
+
+    updateRelatedGroupReq:
+      type: object
+      properties:
+        targetGroupId:
+          type: string
+          description: >-
+            移動するグループのgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        deleteGroupIdList:
+          type: array
+          description: >-
+            移動前の上流グループのgroupIdのリスト<br>
+            ●チェック内容
+              - null、空リストは、エラー
+          items:
+            type: string
+            description: >-
+              groupId<br>
+              ●チェック内容
+                - null、空文字はエラー
+        addGroupIdList:
+          type: array
+          description: >-
+            移動後の上流グループのgroupIdのリスト<br>
+            ●チェック内容
+              - null、空リストは、エラー
+          items:
+            type: string
+            description: >-
+              groupId<br>
+              ●チェック内容
+                - null、空文字はエラー
+
+    applyScheduleSetReq:
+      type: object
+      properties:
+        scheduleSetId:
+          type: string
+          description: >-
+            反映するスケジュールセットID<br>
+            ●チェック内容
+              - null、空文字はエラー
+        groupId:
+          type: string
+          description: >-
+            対象のgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        deviceIds:
+          type: array
+          description: >-
+            対象deviceIdのリスト<br>
+            ●チェック内容
+              - nullは、エラー
+              - 空のリストは、許可
+          items:
+            type: string
+            description: >-
+              対象のdeviceId<br>
+              ●チェック内容
+                - null、空文字はエラー
+        isExclude:
+          type: boolean
+          description: >-
+            deviceIdsの内容指定。
+              - true：deviceIdsは、非選択デバイス
+              - false：deviceIdsは、選択デバイス
+
+            ●チェック内容
+              - true/false以外は、エラー
+          enum:
+            - true
+            - false
+      required:
+          - scheduleSetId
+          - groupId
+          - deviceIds
+          - isExclude
+
+    getScheduleReq:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          description: >-
+            対象のdeviceId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+          - deviceId
+
+    updateScheduleReq:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          description: >-
+            対象のdeviceId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        groupId:
+          type: string
+          description: >-
+            操作実施グループのgroupId<br>
+            groupIdを指定した場合、指定されたgroupIdのグループ操作ログに記録する。<br>
+            null、空文字の場合、groupIdが指定されていないものとし、グループ操作ログの記録は行わない。<br>
+        scheduleJobList:
+          type: array
+          description: >-
+            登録するスケジュールのリスト<br>
+            空のリストを指定することで登録済みのスケジュールを削除できる。<br>
+            ●チェック内容
+              - nullは、エラー
+              - 空のリストは、許可。
+          items:
+            type: object
+            properties:
+              jobType:
+                type: string
+                description: >-
+                  ジョブタイプ<br>
+                  実行するジョブを指定。
+                    - powerOn：電源オン状態へ遷移
+                    - standby：電源待機状態へ遷移
+
+                  ●チェック内容
+                    - 指定文字列以外は、エラー
+                enum:
+                  - powerOn
+                  - standby
+              schedule:
+                type: array
+                description: >-
+                  実行スケジュール<br>
+                  ●チェック内容
+                    - nullは、エラー
+                    - 空のリストは、エラー。
+                items:
+                  type: object
+                  properties:
+                    startTimestamp:
+                      type: integer
+                      format: int64
+                      description: >-
+                        開始日時<br>
+                        Timestampで指定する。タイムゾーンはUTC+00:00<br>
+                        ●チェック内容
+                          - 数値以外は、エラー。
+                          - null、指定なしは、エラー。
+                    endTimestamp:
+                      type: integer
+                      format: int64
+                      description: >-
+                        終了日時<br>
+                        Timestampで指定する。タイムゾーンはUTC+00:00<br>
+                        0 の場合、終了日時の指定なし。<br>
+                        ●チェック内容
+                          - 数値以外は、エラー。
+                          - null、指定なしは、0として扱う。
+                    interval:
+                      type: integer
+                      description: >-
+                        インターバル。単位は、秒。<br>
+                        0 の場合、 繰り返し実行なし。<br>
+                        ●チェック内容
+                          - 数値以外は、エラー。
+                          - null、指定なしは、0として扱う。
+                  required:
+                    - startTimestamp
+      required:
+          - deviceId
+          - scheduleJobList
+
+
+    # Group functions
+    getSRDMGroupListReq:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+          description: >-
+            子グループの開始インデックス<br>
+            expand=childrenOnlyの場合のみ有効。<br>
+            expand="no"の場合は、無効（全件取得）。<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 1
+        count:
+          type: integer
+          description: >-
+            子グループの要求件数<br>
+            expand=childrenOnlyの場合のみ有効。<br>
+            expand="no"の場合は、無効（全件取得）。<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 10
+        groupId:
+          type: string
+          description: >-
+            対象グループのgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        expand:
+          type: string
+          description: >-
+            下位グループの展開要求を指定。<br>
+              - no:要求したグループのみ
+              - childrenOnly:要求グループの子グループのみ
+
+            ●チェック内容
+              - 指定値以外は、エラー
+          default: no
+          enum:
+            - no
+            - childrenOnly
+      required:
+        - groupId
+
+    createGroupReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            作成するgroupIdを指定<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+          - groupId
+
+    removeGroupReq:
+      type: object
+      properties:
+        groupIdList:
+          type: array
+          description: >-
+            対象のgroupIdのリスト<br>
+            ●チェック内容
+              - null、空のリストは、エラー
+          items:
+            type: string
+            description: >-
+              対象のgroupId<br>
+              ●チェック内容
+                - null、空文字はエラー
+        operation:
+          type: string
+          description: >-
+            操作<br>
+            IDP関連のグループに関する情報を変更する。
+              - moveTrash：ゴミ箱へ移動（指定グループを削除状態にする）
+              - restore：ゴミ箱から戻す（指定グループを通常状態にする）
+              - delete：ゴミ箱から削除（指定グループに関する情報を削除する）
+
+            ●チェック内容
+              - 指定文字列以外は、エラー
+          enum:
+            - moveTrash
+            - restore
+            - delete
+      required:
+        - groupIdList
+        - operation
+
+
+    # Schedule functions
+    getScheduleListReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            対象グループのgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+          - groupId
+
+    setScheduleReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            対象グループのgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        scheduleList:
+          type: array
+          description: >-
+            更新するスケジュールをリストで指定<br>
+            ●チェック内容
+              - nullは、エラー
+              - 空のリストは、許可
+          items:
+            type: object
+            properties:
+              scheduleId:
+                type: string
+                description: >-
+                  対象スケジュールのscheduleId<br>
+              execOnScheduleFlag:
+                type: boolean
+                description: >-
+                  スケジュール実行の有効／無効を指定。
+                    - true：スケジュール実行有効
+                    - false：スケジュール実行無効
+
+                  ●チェック内容
+                    - true/false以外は、エラー
+                enum:
+                  - true
+                  - false
+            required:
+              - scheduleId
+              - execOnScheduleFlag
+      required:
+          - groupId
+          - scheduleList
+
+    getScheduleItemReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            対象グループのgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        scheduleId:
+          type: string
+          description: >-
+            対象スケジュールのscheduleId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+          - groupId
+          - scheduleId
+
+    updateScheduleItemReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            対象グループのgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        scheduleId:
+          type: string
+          description: >-
+            対象スケジュールのscheduleId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        execAtStartupFlag:
+          type: boolean
+          description: >-
+            起動時実行の有効／無効を指定。
+              - true：起動時実行有効
+              - false：起動時実行無効
+
+            ●チェック内容
+              - true/false以外は、エラー
+          enum:
+            - true
+            - false
+        schedule:
+          type: array
+          description: >-
+            実行スケジュール<br>
+            ●チェック内容
+              - nullは、エラー
+              - 空のリストは、許可
+          items:
+            type: object
+            properties:
+              startTimestamp:
+                type: integer
+                format: int64
+                description: >-
+                  開始日時<br>
+                  Timestampで指定する。タイムゾーンはUTC+00:00<br>
+                  ●チェック内容
+                    - 数値以外は、エラー。
+                    - null、指定なしは、エラー。
+              endTimestamp:
+                type: integer
+                format: int64
+                description: >-
+                  終了日時<br>
+                  Timestampで指定する。タイムゾーンはUTC+00:00<br>
+                  0 の場合、終了日時の指定なし。<br>
+                  ●チェック内容
+                    - 数値以外は、エラー。
+                    - null、指定なしは、0として扱う。
+              interval:
+                type: integer
+                description: >-
+                  インターバル。単位は、秒。<br>
+                  0 の場合、 繰り返し実行なし。<br>
+                  ●チェック内容
+                    - 数値以外は、エラー。
+                    - null、指定なしは、0として扱う。
+            required:
+              - startTimestamp
+      required:
+          - groupId
+          - scheduleId
+          - execAtStartupFlag
+          - schedule
+
+    getScheduleSetListReq:
+      type: object
+
+    createScheduleSetReq:
+      type: object
+      properties:
+        scheduleSetName:
+          type: string
+          description: >-
+            スケジュールセット名<br>
+            ●チェック内容
+              - null、空文字は、エラー
+              - マルチバイト文字含め、印刷可能な文字は指定可能
+        jobList:
+          type: array
+          description: >-
+            登録するスケジュールのリスト<br>
+            ●チェック内容
+              - null、空のリストは、エラー
+          items:
+            type: object
+            properties:
+              jobType:
+                type: string
+                description: >-
+                  ジョブタイプ<br>
+                  実行するジョブを指定。
+                    - powerOn：電源オン状態へ遷移
+                    - standby：電源待機状態へ遷移
+
+                  ●チェック内容
+                    - 指定文字列以外は、エラー
+                enum:
+                  - powerOn
+                  - standby
+              schedule:
+                type: array
+                description: >-
+                  実行スケジュール<br>
+                  ●チェック内容
+                    - nullは、エラー
+                    - 空のリストは、エラー。
+                items:
+                  type: object
+                  properties:
+                    startTimestamp:
+                      type: integer
+                      format: int64
+                      description: >-
+                        開始日時<br>
+                        Timestampで指定する。タイムゾーンはUTC+00:00<br>
+                        ●チェック内容
+                          - 数値以外は、エラー。
+                          - null、指定なしは、エラー。
+                    endTimestamp:
+                      type: integer
+                      format: int64
+                      description: >-
+                        終了日時<br>
+                        Timestampで指定する。タイムゾーンはUTC+00:00<br>
+                        0 の場合、終了日時の指定なし。<br>
+                        ●チェック内容
+                          - 数値以外は、エラー。
+                          - null、指定なしは、0として扱う。
+                    interval:
+                      type: integer
+                      description: >-
+                        インターバル。単位は、秒。<br>
+                        0 の場合、 繰り返し実行なし。<br>
+                        ●チェック内容
+                          - 数値以外は、エラー。
+                          - null、指定なしは、0として扱う。
+                  required:
+                    - startTimestamp
+            required:
+              - jobType
+              - schedule
+      required:
+          - scheduleSetName
+          - jobList
+
+    getScheduleSetReq:
+      type: object
+      properties:
+        scheduleSetId:
+          type: string
+          description: >-
+            対象スケジュールのscheduleSetId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+          - scheduleSetId
+
+    updateScheduleSetReq:
+      type: object
+      properties:
+        scheduleSetId:
+          type: string
+          description: >-
+            対象スケジュールのscheduleSetId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        scheduleSetName:
+          type: string
+          description: >-
+            スケジュールセット名<br>
+            ●チェック内容
+              - null、空文字は、エラー
+              - マルチバイト文字含め、印刷可能な文字は指定可能
+        jobList:
+          type: array
+          description: >-
+            登録するスケジュールのリスト<br>
+            ●チェック内容
+              - null、空のリストは、エラー
+          items:
+            type: object
+            properties:
+              jobType:
+                type: string
+                description: >-
+                  ジョブタイプ<br>
+                  実行するジョブを指定。
+                    - powerOn：電源オン状態へ遷移
+                    - standby：電源待機状態へ遷移
+
+                  ●チェック内容
+                    - 指定文字列以外は、エラー
+                enum:
+                  - powerOn
+                  - standby
+              schedule:
+                type: array
+                description: >-
+                  実行スケジュール<br>
+                  ●チェック内容
+                    - nullは、エラー
+                    - 空のリストは、エラー。
+                items:
+                  type: object
+                  properties:
+                    startTimestamp:
+                      type: integer
+                      format: int64
+                      description: >-
+                        開始日時<br>
+                        Timestampで指定する。タイムゾーンはUTC+00:00<br>
+                        ●チェック内容
+                          - 数値以外は、エラー。
+                          - null、指定なしは、エラー。
+                    endTimestamp:
+                      type: integer
+                      format: int64
+                      description: >-
+                        終了日時<br>
+                        Timestampで指定する。タイムゾーンはUTC+00:00<br>
+                        0 の場合、終了日時の指定なし。<br>
+                        ●チェック内容
+                          - 数値以外は、エラー。
+                          - null、指定なしは、0として扱う。
+                    interval:
+                      type: integer
+                      description: >-
+                        インターバル。単位は、秒。<br>
+                        0 の場合、 繰り返し実行なし。<br>
+                        ●チェック内容
+                          - 数値以外は、エラー。
+                          - null、指定なしは、0として扱う。
+                  required:
+                    - startTimestamp
+            required:
+              - jobType
+              - schedule
+      required:
+          - scheduleSetId
+          - scheduleSetName
+          - jobList
+
+    deleteScheduleSetReq:
+      type: object
+      properties:
+        scheduleSetIdList:
+          type: array
+          description: >-
+            対象scheduleSetIdのリスト<br>
+            ●チェック内容
+              - nullは、エラー
+              - 空のリストは、許可
+          items:
+            type: string
+            description: >-
+              対象のscheduleSetId<br>
+              ●チェック内容
+                - null、空文字はエラー
+      required:
+          - scheduleSetIdList
+
+
+    # Custom Filter functions
+    createFilterReq:
+      type: object
+      properties:
+        filterName:
+          type: string
+          description: >-
+            フィルター名<br>
+            ●チェック内容
+              - null、空文字はエラー
+              - スペースのみは、エラー
+              - 64文字を超える場合は、エラー（64 < length）
+              - 『\\/:*?"<>|』の文字が含まれる場合は、エラー
+        blockOperation:
+          type: string
+          description: >-
+            ブロック条件<br>
+            指定可能な文字は、and, or<br>
+            ●チェック内容
+              - 指定文字列以外は、エラー
+          enum:
+            - and
+            - or
+        blockConditionList:
+          type: array
+          items:
+            type: object
+            properties:
+              detailOperation:
+                type: string
+                description: >-
+                  詳細条件区分<br>
+                  指定可能な文字は、and, or<br>
+                  ●チェック内容
+                    - 指定文字列以外は、エラー
+                enum:
+                  - and
+                  - or
+              detailConditionList:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    column:
+                      type: string
+                      description: >-
+                        カラム名（キー）<br>
+                        指定可能文字は、SRDM_IDP_DeviceList_Filter.xlsx 参照。<br>
+                        ●チェック内容
+                          - 指定可能文字以外は、エラー
+                    operationId:
+                      type: string
+                      description: >-
+                        条件区分（演算子）<br>
+                        指定可能文字は、SRDM_IDP_DeviceList_Filter.xlsx 参照。<br>
+                        ●チェック内容
+                          - 指定可能文字以外は、エラー
+                    valueString:
+                      type: string
+                      description: >-
+                        入力値
+                          - 条件区分が"isNull", "isNotNull"の場合はnullを指定。
+                          - 条件区分が"between"の場合は、2つの入力値を"/"で結合。
+                        
+                        ●チェック内容
+                          - nullは、エラー 
+                  required:
+                    - column
+                    - operationId
+                    - valueString
+            required:
+              - detailOperation
+              - detailConditionList
+      required:
+        - filterName
+        - blockOperation
+        - blockConditionList
+    
+    setFilterReq:
+      type: object
+      properties:
+        filterId:
+          type: string
+          description: >-
+            対象のfilterId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        filterName:
+          type: string
+          description: >-
+            フィルター名<br>
+            ●チェック内容
+              - null、空文字はエラー
+              - スペースのみは、エラー
+              - 64文字を超える場合は、エラー（64 < length）
+              - 『\\/:*?"<>|』の文字が含まれる場合は、エラー
+        blockOperation:
+          type: string
+          description: >-
+            ブロック条件<br>
+            指定可能な文字は、and, or<br>
+            ●チェック内容
+              - 指定文字列以外は、エラー
+          enum:
+            - and
+            - or
+        blockConditionList:
+          type: array
+          items:
+            type: object
+            properties:
+              detailOperation:
+                type: string
+                description: >-
+                  詳細条件区分<br>
+                  指定可能な文字は、and, or<br>
+                  ●チェック内容
+                    - 指定文字列以外は、エラー
+                enum:
+                  - and
+                  - or
+              detailConditionList:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    column:
+                      type: string
+                      description: >-
+                        カラム名（キー）<br>
+                        指定可能文字は、SRDM_IDP_DeviceList_Filter.xlsx 参照。<br>
+                        ●チェック内容
+                          - 指定可能文字以外は、エラー
+                    operationId:
+                      type: string
+                      description: >-
+                        条件区分（演算子）<br>
+                        指定可能文字は、SRDM_IDP_DeviceList_Filter.xlsx 参照。<br>
+                        ●チェック内容
+                          - 指定可能文字以外は、エラー
+                    valueString:
+                      type: string
+                      description: >-
+                        入力値
+                          - 条件区分が"isNull", "isNotNull"の場合はnullを指定。
+                          - 条件区分が"between"の場合は、2つの入力値を"/"で結合。
+                        
+                        ●チェック内容
+                          - nullは、エラー 
+                  required:
+                    - column
+                    - operationId
+                    - valueString
+            required:
+              - detailOperation
+              - detailConditionList
+      required:
+        - filterId
+        - filterName
+        - blockOperation
+        - blockConditionList
+    
+    deleteFilterReq:
+      type: object
+      properties:
+        filterId:
+          type: string
+          description: >-
+            対象のfilterId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - filterId
+
+    getFilterReq:
+      type: object
+
+
+    # Log functions
+    getDeviceLogReq:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+          description: >-
+            開始インデックス<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 1
+        count:
+          type: integer
+          description: >-
+            要求件数<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 10
+        groupId:
+          type: string
+          description: >-
+            対象グループのgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        deviceId:
+          type: string
+          description: >-
+            対象デバイスのdeviceId<br>
+            特定デバイスのデバイスログを取得する場合に対象となるデバイスのdeviceIdを指定<br>
+            デバイスを特定しない場合は、空文字を設定<br>
+            ●チェック内容
+              - nullエラー
+        simpleFilters:
+          type: array
+          description: 'シンプルフィルター'
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                description: >-
+                  フィルターキー<br>
+                  指定可能な項目は、以下の通り。
+
+                  - フィルターキー一覧
+                    <table border="1">
+                      <tr><th>キー</th><th>説明</th></tr>
+                      <tr><td>kind</td><td>種類</td></tr>
+                      <tr><td>modelName</td><td>モデル名</td></tr>
+                      <tr><td>serialNumber</td><td>シリアル番号</td></tr>
+                      <tr><td>ipAddress</td><td>IPアドレス</td></tr>
+                      <tr><td>friendlyName</td><td>名称</td></tr>
+                      <tr><td>command</td><td>コマンド内容</td></tr>
+                      <tr><td>code</td><td>コマンド結果コード</td></tr>
+                    </table>
+
+                  ●チェック内容
+                    - 指定値以外は、エラー
+              value:
+                type: string
+                description: >-
+                  フィルタリング対象文字列<br>
+                  各フィルターキーで指定可能な文字列は、以下の通り。
+
+                  - フィルタリング対象文字列
+                    <table border="1">
+                      <tr><th>キー</th><th>対象文字列</th></tr>
+                      <tr><td>kind</td><td>次のいずれかの値を指定<br>information, error</td></tr>
+                      <tr><td>modelName</td><td>入力値を設定</td></tr>
+                      <tr><td>serialNumber</td><td>入力値を設定</td></tr>
+                      <tr><td>ipAddress</td><td>入力値を設定</td></tr>
+                      <tr><td>friendlyName</td><td>入力値を設定</td></tr>
+                      <tr><td>command</td><td>「SRDM_IDP_Data_Model_Definition.xlsx」に記載されている操作内容のいずれかを指定</td></tr>
+                      <tr><td>code</td><td>入力値を設定</td></tr>
+                    </table>
+
+                  ●チェック内容
+                    - modelName, serialNumber, ipAddress, friendlyName, code
+                      + null、空文字は、エラー
+                      + マルチバイト文字含め、印刷可能な文字は指定可能
+                      + 空白のみは、許可
+                    - kind, command
+                      + 指定値以外は、エラー
+            required:
+              - key
+              - value
+        orderBy:
+          type: array
+          description: 'ソート指定'
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                description: >-
+                  ソートキー<br>
+                  指定可能な項目は、以下の通り。
+
+                  - ソートキー一覧
+                    <table border="1">
+                      <tr><th>キー</th><th>説明</th></tr>
+                      <tr><td>kind</td><td>種類(*1)</td></tr>
+                      <tr><td>modelName</td><td>モデル名</td></tr>
+                      <tr><td>serialNumber</td><td>シリアル番号</td></tr>
+                      <tr><td>ipAddress</td><td>IPアドレス</td></tr>
+                      <tr><td>friendlyName</td><td>名称</td></tr>
+                      <tr><td>timestamp</td><td>日時</td></tr>
+                      <tr><td>command</td><td>コマンド内容 (*2)</td></tr>
+                      <tr><td>code</td><td>コマンド結果コード</td></tr>
+                    </table>
+
+                  *1)「種類」のソートは、値を文字コードでソートする<br>
+                  *2)「操作内容」のソートは、「SRDM_IDP_Data_Model_Definition.xlsx」に記載されている操作内容の値を文字コードでソートする<br>
+                  ●チェック内容
+                    - 指定値以外は、エラー
+              order:
+                type: string
+                description: >-
+                  ソート順<br>
+                    - ascending:昇順
+                    - descending:降順
+
+                  ●チェック内容
+                    - 指定値以外は、エラー
+                enum:
+                  - ascending
+                  - descending
+            required:
+              - key
+              - order
+      required:
+        - groupId
+
+    getDeviceOperationLogReq:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+          description: >-
+            開始インデックス<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 1
+        count:
+          type: integer
+          description: >-
+            要求件数<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 10
+        deviceId:
+          type: string
+          description: >-
+            対象デバイスのdeviceId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        orderBy:
+          type: array
+          description: 'ソート指定'
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                description: >-
+                  ソートキー<br>
+                  指定可能な項目は、以下の通り。
+
+                  - ソートキー一覧
+                    <table border="1">
+                      <tr><th>キー</th><th>説明</th></tr>
+                      <tr><td>kind</td><td>種類</td></tr>
+                      <tr><td>timestamp</td><td>日時</td></tr>
+                      <tr><td>domainId</td><td>ドメインID</td></tr>
+                      <tr><td>domainName</td><td>ドメイン名</td></tr>
+                      <tr><td>accountId</td><td>アカウントID</td></tr>
+                      <tr><td>accountName</td><td>アカウント名</td></tr>
+                      <tr><td>operation</td><td>操作内容 (*1)</td></tr>
+                      <tr><td>code</td><td>操作結果コード</td></tr>
+                    </table>
+
+                  *1)操作内容のソートは、「SRDM_IDP_Data_Model_Definition.xlsx」に記載されている操作内容の値を文字コードでソートする<br>
+                  ●チェック内容
+                    - 指定値以外は、エラー
+              order:
+                type: string
+                description: >-
+                  ソート順<br>
+                    - ascending:昇順
+                    - descending:降順
+
+                  ●チェック内容
+                    - 指定値以外は、エラー
+                enum:
+                  - ascending
+                  - descending
+            required:
+              - key
+              - order
+      required:
+        - deviceId
+
+    getGroupOperationLogReq:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+          description: >-
+            開始インデックス<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 1
+        count:
+          type: integer
+          description: >-
+            要求件数<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 10
+        groupId:
+          type: string
+          description: >-
+            対象グループのgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+        orderBy:
+          type: array
+          description: 'ソート指定'
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                description: >-
+                  ソートキー<br>
+                  指定可能な項目は、以下の通り。
+
+                  - ソートキー一覧
+                    <table border="1">
+                      <tr><th>キー</th><th>説明</th></tr>
+                      <tr><td>kind</td><td>種類</td></tr>
+                      <tr><td>timestamp</td><td>日時</td></tr>
+                      <tr><td>domainId</td><td>ドメインID</td></tr>
+                      <tr><td>domainName</td><td>ドメイン名</td></tr>
+                      <tr><td>accountId</td><td>アカウントID</td></tr>
+                      <tr><td>accountName</td><td>アカウント名</td></tr>
+                      <tr><td>operation</td><td>操作内容 (*1)</td></tr>
+                      <tr><td>code</td><td>操作結果コード</td></tr>
+                    </table>
+
+                  *1)操作内容のソートは、「SRDM_IDP_Data_Model_Definition.xlsx」に記載されている操作内容の値を文字コードでソートする<br>
+                  ●チェック内容
+                    - 指定値以外は、エラー
+              order:
+                type: string
+                description: >-
+                  ソート順<br>
+                    - ascending:昇順
+                    - descending:降順
+
+                  ●チェック内容
+                    - 指定値以外は、エラー
+                enum:
+                  - ascending
+                  - descending
+            required:
+              - key
+              - order
+      required:
+        - groupId
+
+    getDomainOperationLogReq:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+          description: >-
+            開始インデックス<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 1
+        count:
+          type: integer
+          description: >-
+            要求件数<br>
+            ●チェック内容
+              - 数値以外はエラー
+          default: 10
+        orderBy:
+          type: array
+          description: 'ソート指定'
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                description: >-
+                  ソートキー<br>
+                  指定可能な項目は、以下の通り。
+
+                  - ソートキー一覧
+                    <table border="1">
+                      <tr><th>キー</th><th>説明</th></tr>
+                      <tr><td>kind</td><td>種類</td></tr>
+                      <tr><td>timestamp</td><td>日時</td></tr>
+                      <tr><td>accountId</td><td>アカウントID</td></tr>
+                      <tr><td>accountName</td><td>アカウント名</td></tr>
+                      <tr><td>operation</td><td>操作内容 (*1)</td></tr>
+                      <tr><td>code</td><td>操作結果コード</td></tr>
+                    </table>
+
+                  *1)操作内容のソートは、「SRDM_IDP_Data_Model_Definition.xlsx」に記載されている操作内容の値を文字コードでソートする<br>
+                  ●チェック内容
+                    - 指定値以外は、エラー
+              order:
+                type: string
+                description: >-
+                  ソート順<br>
+                    - ascending:昇順
+                    - descending:降順
+
+                  ●チェック内容
+                    - 指定値以外は、エラー
+                enum:
+                  - ascending
+                  - descending
+            required:
+              - key
+              - order
+
+    getDeviceLogDetailReq:
+      type: object
+      properties:
+        logId:
+          type: string
+          description: >-
+            対象デバイスログのlogId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - logId
+
+    getDeviceOperationLogDetailReq:
+      type: object
+      properties:
+        logId:
+          type: string
+          description: >-
+            対象デバイス操作ログのlogId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - logId
+
+    getGroupOperationLogDetailReq:
+      type: object
+      properties:
+        logId:
+          type: string
+          description: >-
+            対象グループ操作ログのlogId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - logId
+
+    getDomainOperationLogDetailReq:
+      type: object
+      properties:
+        logId:
+          type: string
+          description: >-
+            対象ドメイン操作ログのlogId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - logId
+
+    deleteDeviceLogReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            対象グループのgroupId<br>
+            ●チェック内容
+              - nullエラー
+              - deviceIdの指定がない、または、空文字の場合、groupIdが空文字、または、指定なしは、エラー
+        deviceId:
+          type: string
+          description: >-
+            対象デバイスのdeviceId<br>
+            ●チェック内容
+              - nullエラー
+              - groupIdの指定がない、または、空文字の場合、deviceIdが空文字、または、指定なしは、エラー
+
+    deleteDeviceOperationLogReq:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          description: >-
+            対象デバイスのdeviceId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - deviceId
+
+    deleteGroupOperationLogReq:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: >-
+            対象グループのgroupId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - groupId
+
+    deleteDomainOperationLogReq:
+      type: object
+
+    startDeleteLogReq:
+      type: object
+      properties:
+        period:
+          type: integer
+          description: >-
+            ログを残す期間（ヶ月)<br>
+            1未満を指定した場合でも、操作ログは、「1か月分」を残す。<br>
+            ●チェック内容
+              - 数値以外はエラー
+
+
+    # Domain functions
+    getThemeSettingReq:
+      type: object
+
+    setThemeSettingReq:
+      type: object
+      properties:
+        theme:
+          type: string
+          description: >-
+            UIテーマ<br>
+            ●内容チェック
+              - 指定値以外は、エラー
+          enum:
+            - Enterprise
+            - EnterpriseBlue
+            - EnterpriseRed
+            - EnterpriseGreen
+            - Graphite
+            - Tahoe
+      required:
+        - theme
+
+
+    # Export functions
+    exportDeviceDataHistoryReq:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          description: >-
+            対象グループのdeviceId<br>
+            ●チェック内容
+              - null、空文字はエラー
+      required:
+        - deviceId
+
+
+    # response parameters
+    # common
+    commonRsp:
+      type: object
+      properties:
+        errorList:
+          type: array
+          items:
+            type: object
+            properties:
+              errorCode:
+                type: string
+                description: >-
+                  エラーコード
+                    - エラーコード一覧
+                      <table border="1">
+                        <tr><th>エラーコード</th><th>説明</th></tr>
+                        <tr><td>E0001</td><td>DBアクセスエラー</td></tr>
+                        <tr><td>E0004</td><td>JSONパースエラー</td></tr>
+                        <tr><td>E0011</td><td>パラメータの必須チェックエラー</td></tr>
+                        <tr><td>E0014</td><td>パラメータの書式チェックエラー</td></tr>
+                        <tr><td>E0019</td><td>対象のインスタンス（groupやdeviceなど）が存在しない場合</td></tr>
+                        <tr><td>E0021</td><td>無効なsessionId</td></tr>
+                        <tr><td>E0024</td><td>権限なしエラー</td></tr>
+                        <tr><td>E0026</td><td>セッションタイムアウトエラー又はディスク容量不足エラー</td></tr>
+                        <tr><td>E0050</td><td>指定グループ管理外エラー</td></tr>
+                      </table>
+              errorField:
+                type: string
+                description: 'エラーが発生したパラメータフィールド'
+              errorValue:
+                type: string
+                description: 'エラーとなった値'
+              errorMessage:
+                type: string
+                description: 'エラーメッセージ（人間が理解可能なテキスト）'
+
+
+    # Basic functions
+    getDeviceListRsp:
+      type: object
+      description: 'getDeviceList response parameter.'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+        startIndex:
+          type: integer
+          description: '開始インデックス（リクエストパラメータと同じ）'
+        count:
+          type: integer
+          description: '要求件数（リクエストパラメータと同じ）'
+        resultCount:
+          type: integer
+          description: '今回取得件数'
+        totalCount:
+          type: integer
+          description: '検索結果総数'
+        deviceList: 
+          type: array
+          description: 'デバイスリスト'
+          items:
+            type: object
+            properties:
+              deviceId:
+                type: string
+                description: 'deviceId'
+              modelName:
+                type: string
+                description: 'モデル名<br>登録後、情報取得未実行時は、空文字'
+              serialNumber:
+                type: string
+                description: 'シリアル番号<br>登録後、情報取得未実行時は、空文字'
+              ipAddress:
+                type: string
+                description: 'IPアドレス'
+              friendlyName:
+                type: string
+                description: '名称'
+              communicationStatus:
+                type: string
+                description: >-
+                  通信状態<br>
+                  <table border="1">
+                    <tr><th>コード</th><th>説明</th></tr>
+                    <tr><td>0000</td><td>正常（デバイスと通信でき、正常応答を受信）</td></tr>
+                    <tr><td>0301</td><td>応答なし</td></tr>
+                    <tr><td>0302</td><td>異常（デバイスと通信でき、異常応答を受信）</td></tr>
+                    <tr><td>0303</td><td>デバイスの入れ替わり（IPアドレスを他のディスプレイデバイスで使用中）</td></tr>
+                    <tr><td>0305</td><td>認証エラー（デバイスへのログイン失敗）</td></tr>
+                    <tr><td>0306</td><td>異常（デバイスと通信できたが、ID情報取得失敗）</td></tr>
+                    <tr><td>0310</td><td>通信エラー（プロトコルエラーや通信中の切断など）</td></tr>
+                    <tr><td>0399</td><td>その他エラー</td></tr>
+                    <tr><td>9999</td><td>通信未実行（デバイス登録直後から最初の情報取得結果を受信するまで）</td></tr>
+                  </table>
+              powerStatus:
+                type: string
+                description: 'モニター電源状態<br>登録後、情報取得未実行時は、空文字'
+                enum:
+                  - STANDBY
+                  - NORMAL
+                  - NOSIGNAL
+
+    getDeviceDetailRsp:
+      type: object
+      description: 'getDeviceDetail reponse parameter.'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+        deviceId:
+          type: string
+          description: 'deviceId'
+        modelName:
+          type: string
+          description: 'モデル名<br>登録後、情報取得未実行時は、空文字'
+        serialNumber:
+          type: string
+          description: 'シリアル番号<br>登録後、情報取得未実行時は、空文字'
+        friendlyName:
+          type: string
+          description: '名称'
+        powerStatus:
+          type: string
+          description: 'モニター電源状態<br>登録後、情報取得未実行時は、空文字'
+          enum:
+            - STANDBY
+            - NORMAL
+            - NOSIGNAL
+        createTimestamp:
+          type: integer
+          format: int64
+          description: '登録日時<br>登録日時をtimestampで返す。'
+        updateTimestamp:
+          type: integer
+          format: int64
+          description: '更新日時<br>情報取得日時をtimestampで返す。'
+        imputMode:
+          type: string
+          description: '入力モード<br>登録後、情報取得未実行時は、空文字'
+          enum:
+            - DVI-D
+            - D-SUB1
+            - D-SUB2
+            - D-SUB3
+            - HDMI-AV
+            - HDMI1
+            - USB
+            - HDMI2
+            - D-PORT1
+            - HDMI3
+            - OPTION
+            - D-PORT2
+            - APPLICATION
+            - TV
+        displaySize:
+          type: string
+          description: '画面サイズ<br>登録後、情報取得未実行時は、空文字'
+          enum:
+            - WIDE
+            - NORMAL
+            - DOT
+            - ZOOM1
+            - ZOOM2
+            - NORMAL
+        colorMode:
+          type: string
+          description: 'カラーモード<br>登録後、情報取得未実行時は、空文字'
+          enum:
+            - STD
+            - VIVID
+            - SRGB
+            - HIGH-ILLUM
+            - PC
+            - MOVIE
+            - THRU
+            - CUSTOM
+            - AV
+            - USER
+        brightness:
+          type: integer
+          description: '明るさ<br>登録後、情報取得未実行時は、-1'
+        volume:
+          type: integer
+          description: '音量'
+        mute:
+          type: string
+          description: 'ミュート状態<br>登録後、情報取得未実行時は、空文字'
+          enum:
+            - ON
+            - OFF
+        direction:
+          type: string
+          description: '画面方向<br>登録後、情報取得未実行時は、空文字'
+          enum:
+            - LANDSCAPE
+            - PORTRAIT
+            - FACEUP
+            - FACEDOWN
+        temperatureSensorStatus:
+          type: integer
+          description: '温度センサーの状態<br>登録後、情報取得未実行時は、-1'
+        temperature:
+          type: array
+          description: '温度センサーの値<br>全てのセンサーの値を返す。<br>登録後、情報取得未実行時は、-1'
+          items:
+            type: integer
+        ipAddress:
+          type: string
+          description: 'IPアドレス'
+        communicationStatus:
+          type: string
+          description: >-
+            通信状態<br>
+            <table border="1">
+              <tr><th>コード</th><th>説明</th></tr>
+              <tr><td>0000</td><td>正常（デバイスと通信でき、正常応答を受信）</td></tr>
+              <tr><td>0301</td><td>応答なし</td></tr>
+              <tr><td>0302</td><td>異常（デバイスと通信でき、異常応答を受信）</td></tr>
+              <tr><td>0303</td><td>デバイスの入れ替わり（IPアドレスを他のディスプレイデバイスで使用中）</td></tr>
+              <tr><td>0305</td><td>認証エラー（デバイスへのログイン失敗）</td></tr>
+              <tr><td>0306</td><td>異常（デバイスと通信できたが、ID情報取得失敗）</td></tr>
+              <tr><td>0310</td><td>通信エラー（プロトコルエラーや通信中の切断など）</td></tr>
+              <tr><td>0399</td><td>その他エラー</td></tr>
+              <tr><td>9999</td><td>通信未実行（デバイス登録直後から最初の情報取得結果を受信するまで）</td></tr>
+            </table>
+
+    getWebPageUrlRsp:
+      type: object
+      description: 'getWebPageUrl response parameter.'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+        url:
+          type: string
+          description: >-
+            デバイスのEmbedded Web Pageアクセス用URL<br>
+            URLで使用するhttpスキームは、http固定とする。
+
+    registerDeviceManuallyRsp:
+      type: object
+      description: 'registerDeviceManually response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        count: 
+          type: object
+          properties:
+            success:
+              type: integer
+              description: '登録成功件数'
+            failed:
+              type: integer
+              description: '登録エラー件数'
+        registerErrorList:
+          type: array
+          description: '登録エラーのリスト'
+          items:
+            type: object
+            properties:
+              targetAddress:
+                type: string
+                description: '登録エラーとなったアドレス'
+              errorCode:
+                type: integer
+                description: >-
+                  エラーコード一覧
+                  <table border="1">
+                    <tr><th width="10">エラーコード</th><th>説明</th></tr>
+                    <tr><td>1</td><td>DBアクセスエラー</td></tr>
+                    <tr><td>2</td><td>重複エラー</td></tr>
+                  </table>
+
+    getDeviceRegistrationInformationRsp:
+      type: object
+      description: 'getDeviceRegistrationInformtion response parameter.'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+        deviceId:
+          type: string
+          description: 'deviceId'
+        targetAddress:
+          type: string
+          description: 'ターゲットアドレス'
+        port:
+          type: integer
+          description: 'ポート'
+        userName:
+          type: string
+          description: 'ユーザ名'
+        friendlyName:
+          type: string
+          description: '名称'
+
+    updateDeviceRegistrationInformationRsp:
+      type: object
+      description: 'updateDeviceRegistrationInformtion response parameter.'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+
+    executeUpdateInformationRsp:
+      type: object
+      description: 'execvuteUpdateInformation response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        targetList:
+          type: array
+          description: >-
+            実行対象のdeviceIdのリスト
+          items:
+            type: string
+            description: >-
+              実行対象のdeviceId
+
+    executeManagePowerRsp:
+      type: object
+      description: 'executeManagePower response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        targetList:
+          type: array
+          description: >-
+            実行対象のdeviceIdのリスト
+          items:
+            type: string
+            description: >-
+              実行対象のdeviceId
+
+    executeChangeInputModeRsp:
+      type: object
+      description: 'executeChangeInputMode response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        targetList:
+          type: array
+          description: >-
+            実行対象のdeviceIdのリスト
+          items:
+            type: string
+            description: >-
+              実行対象のdeviceId
+
+    unregisterDeviceRsp:
+      type: object
+      description: 'unregisterDevice response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        requestId:
+          type: integer
+          description: '発行したrequestId'
+
+    getUnregisterDeviceResultRsp:
+      type: object
+      description: 'getUnregisterDeviceResult response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        count: 
+          type: object
+          properties:
+            success:
+              type: integer
+              description: '成功件数'
+            failed:
+              type: integer
+              description: 'エラー件数'
+        errorDeviceList:
+          type: array
+          description: '削除エラーとなったdeviceIdのリスト'
+          items:
+            type: object
+            properties:
+              deviceId:
+                type: string
+                description: '削除エラーとなったデバイスのdeviceId'
+              errorCode:
+                type: integer
+                description: >-
+                  エラーコード一覧
+                  <table border="1">
+                    <tr><th width="10">エラーコード</th><th>説明</th></tr>
+                    <tr><td>1</td><td>DBアクセスエラー</td></tr>
+                  </table>
+
+    checkProgressRsp:
+      type: object
+      description: 'checkProgress response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        isComplete:
+          type: boolean
+          description: '非同期処理実行状況<br>（true:非同期処理完了。または、指定されたrequestIdの非同期処理は未実行／false:非同期処理実行中）'
+          enum:
+            - true
+            - false
+
+    updateRelatedGroupRsp:
+      type: object
+      description: 'updateRelatedGroup response parameter'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+
+    applyScheduleSetRsp:
+      type: object
+      description: 'applyScheduleSet response parameter'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+
+    getScheduleRsp:
+      type: object
+      description: 'getSchedule response parameter'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+        scheduleJobList:
+          type: array
+          description: >-
+            登録済みスケジュールのリスト<br>
+          items:
+            type: object
+            properties:
+              jobType:
+                type: string
+                description: >-
+                  ジョブタイプ
+                    - powerOn：電源オン状態へ遷移
+                    - standby：電源待機状態へ遷移
+                enum:
+                  - powerOn
+                  - standby
+              schedule:
+                type: array
+                description: >-
+                  実行スケジュール<br>
+                items:
+                  type: object
+                  properties:
+                    startTimestamp:
+                      type: integer
+                      format: int64
+                      description: >-
+                        開始日時<br>
+                        Timestampで返す。タイムゾーンはUTC+00:00<br>
+                    endTimestamp:
+                      type: integer
+                      format: int64
+                      description: >-
+                        終了日時<br>
+                        Timestampで返す。タイムゾーンはUTC+00:00<br>
+                        0 の場合、終了日時の指定なし。<br>
+                    interval:
+                      type: integer
+                      description: >-
+                        インターバル。単位は、秒。<br>
+                        0 の場合、 繰り返し実行なし。<br>
+
+    updateScheduleRsp:
+      type: object
+      description: 'updateSchedule response parameter'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+
+
+    # Group functions
+    getSRDMGroupListRsp:
+      type: object
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        startIndex:
+          type: integer
+          description: '開始インデックス（リクエストパラメータと同じ）'
+        count:
+          type: integer
+          description: '要求件数（リクエストパラメータと同じ）'
+        resultCount:
+          type: integer
+          description: '今回取得件数'
+        totalCount:
+          type: integer
+          description: '検索結果総数'
+        requestedGroupId:
+          type: string
+          description: '指定グループID（リクエストパラメータの"groupId"と同じ値）'
+        expand:
+          type: string
+          description: >-
+            下位グループの展開要求<br>
+              - no:要求したグループのみ
+              - childrenOnly:要求グループの子グループのみ
+          enum:
+            - no
+            - childrenOnly
+        groupList:
+          type: array
+          description: 'グループツリーのリスト'
+          items:
+            type: object
+            properties:
+              parentGroupId:
+                type: string
+                description: '親グループID'
+              groupId:
+                type: string
+                description: 'グループID'
+              groupName:
+                type: string
+                description: 'グループ名'
+
+    createGroupRsp:
+      type: object
+      description: 'createGroup response parameter'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+
+    removeGroupRsp:
+      type: object
+      description: 'removeGroup response parameter'
+      properties:
+        common:
+          $ref: '#/components/schemas/commonRsp'
+
+
+    # Schedule functions
+    getScheduleListRsp:
+      type: object
+      description: 'getScheduleList response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        scheduleList:
+          type: array
+          description: >-
+            スケジュールのリスト<br>
+          items:
+            type: object
+            properties:
+              scheduleId:
+                type: string
+                description: 'スケジュールID'
+              jobType:
+                type: string
+                description: >-
+                  ジョブタイプ
+                    - update：デバイス情報更新
+                enum:
+                  - update
+              scheduleName:
+                type: string
+                description: 'スケジュール名'
+              execOnScheduleFlag:
+                type: boolean
+                description: >-
+                  スケジュール実行の有効／無効
+                    - true：スケジュール実行有効
+                    - false：スケジュール実行無効
+                enum:
+                  - true
+                  - false
+
+    getScheduleItemRsp:
+      type: object
+      description: 'getScheduleItem response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        execAtStartupFlag:
+          type: boolean
+          description: >-
+            起動時実行の有効／無効
+              - true：起動時実行有効
+              - false：起動時実行無効
+          enum:
+            - true
+            - false
+        schedule:
+          type: array
+          description: >-
+            実行スケジュール<br>
+          items:
+            type: object
+            properties:
+              startTimestamp:
+                type: integer
+                format: int64
+                description: >-
+                  開始日時<br>
+                  Timestampで返す。タイムゾーンはUTC+00:00<br>
+              endTimestamp:
+                type: integer
+                format: int64
+                description: >-
+                  終了日時<br>
+                  Timestampで返す。タイムゾーンはUTC+00:00<br>
+                  0 の場合、終了日時の指定なし。<br>
+              interval:
+                type: integer
+                description: >-
+                  インターバル。単位は、秒。<br>
+                  0 の場合、 繰り返し実行なし。<br>
+
+    updateScheduleItemRsp:
+      type: object
+      description: 'updateScheduleItem response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+    setScheduleRsp:
+      type: object
+      description: 'setSchedule response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+    getScheduleSetListRsp:
+      type: object
+      description: 'getScheduleSetList response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        scheduleSetList:
+          type: array
+          description: >-
+            スケジュールセットのリスト<br>
+          items:
+            type: object
+            properties:
+              scheduleSetId:
+                type: string
+                description: 'スケジュールセットID'
+              scheduleSetName:
+                type: string
+                description: 'スケジュールセット名'
+
+    createScheduleSetRsp:
+      type: object
+      description: 'createScheduleSet response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+    getScheduleSetRsp:
+      type: object
+      description: 'getScheduleSet response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        scheduleSetName:
+          type: string
+          description: 'スケジュールセット名'
+        jobList:
+          type: array
+          description: >-
+            登録するスケジュールのリスト<br>
+          items:
+            type: object
+            properties:
+              jobType:
+                type: string
+                description: >-
+                  ジョブタイプ
+                    - powerOn：電源オン状態へ遷移
+                    - standby：電源待機状態へ遷移
+                enum:
+                  - powerOn
+                  - standby
+              schedule:
+                type: array
+                description: >-
+                  実行スケジュール<br>
+                items:
+                  type: object
+                  properties:
+                    startTimestamp:
+                      type: integer
+                      format: int64
+                      description: >-
+                        開始日時<br>
+                        Timestampで返す。タイムゾーンはUTC+00:00<br>
+                    endTimestamp:
+                      type: integer
+                      format: int64
+                      description: >-
+                        終了日時<br>
+                        Timestampで返す。タイムゾーンはUTC+00:00<br>
+                        0 の場合、終了日時の指定なし。<br>
+                    interval:
+                      type: integer
+                      description: >-
+                        インターバル。単位は、秒。<br>
+                        0 の場合、 繰り返し実行なし。<br>
+
+    updateScheduleSetRsp:
+      type: object
+      description: 'updateScheduleSet response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+    deleteScheduleSetRsp:
+      type: object
+      description: 'deleteScheduleSet response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+
+    # Custom Filter functions
+    createFilterRsp:
+      type: object
+      description: 'createFilter response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        filterId:
+          type: string
+          description: '作成したフィルターのfilterId'
+    
+    setFilterRsp:
+      type: object
+      description: 'setFilter response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+    
+    deleteFilterRsp:
+      type: object
+      description: 'deleteFilter response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+    getFilterRsp:
+      type: object
+      description: 'getFilter response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        filterList:
+          type: array
+          items:
+            type: object
+            properties:
+              _index:
+                type: integer
+                description: >-
+                  フィルターリストの番号（Jsonのソート用）
+              filter:
+                type: object
+                properties:
+                  filterId:
+                    type: string
+                    description: 'filterId'
+                  filterType:
+                    type: string
+                    description: 'フィルタータイプ<br>system：システム定義フィルター／"userDefined"：ユーザ定義'
+                  filterName:
+                    type: string
+                    description: 'フィルター名'
+                  blockOperation:
+                    type: string
+                    description: 'ブロック条件区分<br>"and" または、 "or"'
+                  blockConditionList:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        detailOperation:
+                          type: string
+                          description: '詳細条件区分<br>"and" または、 "or"'
+                        detailConditionList:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              column:
+                                type: string
+                                description: 'カラム名（キー）'
+                              operation:
+                                type: string
+                                description: '条件区分（演算子）'
+                              valueString:
+                                type: string
+                                description: '値<br>条件区分が"isNull", "isNotNull"の場合はnull<br>条件区分が"between"の場合は、2つの値が"/"で結合されている'
+
+
+    # Log functions
+    getDeviceLogRsp:
+      type: object
+      description: 'getDeviceLog response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        startIndex:
+          type: integer
+          description: '開始インデックス（リクエストパラメータと同じ）'
+        count:
+          type: integer
+          description: '要求件数（リクエストパラメータと同じ）'
+        resultCount:
+          type: integer
+          description: '今回取得件数'
+        totalCount:
+          type: integer
+          description: '検索結果総数'
+        logList: 
+          type: array
+          description: >-
+            ログリスト<br>
+            ログが存在しない場合は、空のリストを返す。
+          items:
+            type: object
+            properties:
+              logId:
+                type: string
+                description: 'デバイスログID'
+              kind:
+                type: string
+                description: '種類<br>information／error'
+              timestamp:
+                type: integer
+                format: int64
+                description: '日時'
+              modelName:
+                type: string
+                description: 'モデル名<br>登録後、情報取得未実行時は、空文字'
+              serialNumber:
+                type: string
+                description: 'シリアル番号<br>登録後、情報取得未実行時は、空文字'
+              ipAddress:
+                type: string
+                description: 'IPアドレス'
+              friendlyName:
+                type: string
+                description: '名称'
+              command:
+                type: string
+                description: 'コマンド内容<br>コマンド内容は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。'
+              code:
+                type: string
+                description: '実行結果コード<br>0000：正常／0000以外：異常<br>異常の場合の結果コードは、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。'
+    
+    getDeviceOperationLogRsp:
+      type: object
+      description: 'getDeviceOperationLog response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        startIndex:
+          type: integer
+          description: '開始インデックス（リクエストパラメータと同じ）'
+        count:
+          type: integer
+          description: '要求件数（リクエストパラメータと同じ）'
+        resultCount:
+          type: integer
+          description: '今回取得件数'
+        totalCount:
+          type: integer
+          description: '検索結果総数'
+        logList: 
+          type: array
+          description: >-
+            ログリスト<br>
+            ログが存在しない場合は、空のリストを返す。
+          items:
+            type: object
+            properties:
+              logId:
+                type: string
+                description: 'デバイス操作ログID'
+              kind:
+                type: string
+                description: '種類<br>information／error'
+              timestamp:
+                type: integer
+                format: int64
+                description: '操作日時'
+              domainId:
+                type: string
+                description: '操作実施者が属するドメインのドメインID'
+              domainName:
+                type: string
+                description: '操作実施者が属するドメインのドメイン名'
+              accountId:
+                type: string
+                description: '操作実施者のアカウントID'
+              accountName:
+                type: string
+                description: '操作実施者のアカウント名'
+              accountStatus:
+                type: string
+                description: '操作実施者のアカウントの状態<br>active／locked／deleted／manualLocked'
+              operation:
+                type: string
+                description: '操作内容<br>操作内容は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。'
+              code:
+                type: string
+                description: '操作結果コード<br>0000：正常／0000以外：異常<br>異常の場合の結果コードは、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。'
+    
+    getGroupOperationLogRsp:
+      type: object
+      description: 'getGroupOperationLog response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        startIndex:
+          type: integer
+          description: '開始インデックス（リクエストパラメータと同じ）'
+        count:
+          type: integer
+          description: '要求件数（リクエストパラメータと同じ）'
+        resultCount:
+          type: integer
+          description: '今回取得件数'
+        totalCount:
+          type: integer
+          description: '検索結果総数'
+        logList: 
+          type: array
+          description: >-
+            ログリスト<br>
+            ログが存在しない場合は、空のリストを返す。
+          items:
+            type: object
+            properties:
+              logId:
+                type: string
+                description: 'グループ操作ログID'
+              kind:
+                type: string
+                description: '種類<br>information／error'
+              timestamp:
+                type: integer
+                format: int64
+                description: '操作日時'
+              domainId:
+                type: string
+                description: '操作実施者が属するドメインのドメインID'
+              domainName:
+                type: string
+                description: '操作実施者が属するドメインのドメイン名'
+              accountId:
+                type: string
+                description: '操作実施者のアカウントID'
+              accountName:
+                type: string
+                description: '操作実施者のアカウント名'
+              accountStatus:
+                type: string
+                description: '操作実施者のアカウントの状態<br>active／locked／deleted／manualLocked'
+              operation:
+                type: string
+                description: '操作内容<br>操作内容は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。'
+              code:
+                type: string
+                description: '操作結果コード<br>0000：正常／0000以外：異常<br>異常の場合の結果コードは、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。'
+    
+    getDomainOperationLogRsp:
+      type: object
+      description: 'getDomainOperationLog response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        startIndex:
+          type: integer
+          description: '開始インデックス（リクエストパラメータと同じ）'
+        count:
+          type: integer
+          description: '要求件数（リクエストパラメータと同じ）'
+        resultCount:
+          type: integer
+          description: '今回取得件数'
+        totalCount:
+          type: integer
+          description: '検索結果総数'
+        logList: 
+          type: array
+          description: >-
+            ログリスト<br>
+            ログが存在しない場合は、空のリストを返す。
+          items:
+            type: object
+            properties:
+              logId:
+                type: string
+                description: 'ドメイン操作ログID'
+              kind:
+                type: string
+                description: '種類<br>information／error'
+              timestamp:
+                type: integer
+                format: int64
+                description: '操作日時'
+              accountId:
+                type: string
+                description: '操作実施者のアカウントID'
+              accountName:
+                type: string
+                description: '操作実施者のアカウント名'
+              accountStatus:
+                type: string
+                description: '操作実施者のアカウントの状態<br>active／locked／deleted／manualLocked'
+              operation:
+                type: string
+                description: '操作内容<br>操作内容は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。'
+              code:
+                type: string
+                description: '操作結果コード<br>0000：正常／0000以外：異常<br>異常の場合の結果コードは、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。'
+    
+    getDeviceLogDetailRsp:
+      type: object
+      description: 'getDeviceLogDetail response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        logId:
+          type: string
+          description: 'デバイスログID（リクエストパラメータと同じ値）'
+        resultCount:
+          type: integer
+          description: '詳細項目の件数'
+        itemList:
+          type: array
+          description: '詳細項目のリスト<br>詳細項目が存在しない場合は、空のリストを返す。'
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: >-
+                  詳細項目の項目名<br>
+                  設定される項目名は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。
+              value:
+                type: string
+                description: >-
+                  詳細項目の値<br>
+                  設定される値は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。
+
+    getDeviceOperationLogDetailRsp:
+      type: object
+      description: 'getDeviceOperationLogDetail response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        logId:
+          type: string
+          description: 'デバイス操作ログID（リクエストパラメータと同じ値）'
+        resultCount:
+          type: integer
+          description: '詳細項目の件数'
+        itemList:
+          type: array
+          description: '詳細項目のリスト<br>詳細項目が存在しない場合は、空のリストを返す。'
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: >-
+                  詳細項目の項目名<br>
+                  設定される項目名は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。
+              value:
+                type: string
+                description: >-
+                  詳細項目の値<br>
+                  設定される値は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。
+
+    getGroupOperationLogDetailRsp:
+      type: object
+      description: 'getGroupOperationLogDetail response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        logId:
+          type: string
+          description: 'グループ操作ログID（リクエストパラメータと同じ値）'
+        resultCount:
+          type: integer
+          description: '詳細項目の件数'
+        itemList:
+          type: array
+          description: '詳細項目のリスト<br>詳細項目が存在しない場合は、空のリストを返す。'
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: >-
+                  詳細項目の項目名<br>
+                  設定される項目名は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。
+              value:
+                type: string
+                description: >-
+                  詳細項目の値<br>
+                  設定される値は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。
+
+    getDomainOperationLogDetailRsp:
+      type: object
+      description: 'getDomainOperationLogDetail response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        logId:
+          type: string
+          description: 'ドメイン操作ログID（リクエストパラメータと同じ値）'
+        resultCount:
+          type: integer
+          description: '詳細項目の件数'
+        itemList:
+          type: array
+          description: '詳細項目のリスト<br>詳細項目が存在しない場合は、空のリストを返す。'
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: >-
+                  詳細項目の項目名<br>
+                  設定される項目名は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。
+              value:
+                type: string
+                description: >-
+                  詳細項目の値<br>
+                  設定される値は、「SRDM_IDP_Data_Model_Definition.xlsx」を参照。
+
+    deleteDeviceLogRsp:
+      type: object
+      description: 'deleteDeviceLog response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+    deleteDeviceOperationLogRsp:
+      type: object
+      description: 'deleteDeviceOperationLog response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+    deleteGroupOperationLogRsp:
+      type: object
+      description: 'deleteGroupOperationLog response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+    deleteDomainOperationLogRsp:
+      type: object
+      description: 'deleteDomainOperationLog response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+    startDeleteLogRsp:
+      type: object
+      description: 'startDeleteLog response parameter.'
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+
+    # Domain functions
+    getThemeSettingRsp:
+      type: object
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        theme:
+          type: string
+          description: >-
+            UIテーマ<br>
+          enum:
+            - Enterprise
+            - EnterpriseBlue
+            - EnterpriseRed
+            - EnterpriseGreen
+            - Graphite
+            - Tahoe
+
+    setThemeSettingRsp:
+      type: object
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+
+
+    # Export functions
+    exportDeviceDataHistoryRsp:
+      type: object
+      properties:
+        common: 
+          $ref: '#/components/schemas/commonRsp'
+        requestId:
+          type: string
+          description: >-
+            リクエストID<br>
+
+
+  #Security Schemas
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sid_randomString
+
+security:
+  - cookieAuth: []
