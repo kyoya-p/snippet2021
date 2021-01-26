@@ -1,13 +1,13 @@
 import idpManager.srdm.api.BasicFunctionsApi
-
+import idpManager.srdm.model.RegisterDeviceManuallyReqRegisterTargetList
 fun main() {
     val basicApi = BasicFunctionsApi()
 
-    val dev1 = idpManager.srdm.model.RegisterDeviceManuallyReqRegisterTargetList(
-        target = "10.36.102.184",
-        port = 8086,
-        user = "",
-        password = "",
+    val dev1 = RegisterDeviceManuallyReqRegisterTargetList(
+        "10.36.102.184",
+        8086,
+        "",
+        "",
     )
 
 
