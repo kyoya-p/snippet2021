@@ -1,2 +1,2 @@
 rootProject.name = "openapiGen"
-include("genarateApi")
+include("generateApi")
