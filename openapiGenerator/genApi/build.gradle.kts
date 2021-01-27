@@ -18,6 +18,7 @@ dependencies {
 
 /*
 
+
 // https://github.com/OpenAPITools/openapi-generator/blob/master/docs/generators/kotlin.md
 // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
 // https://qiita.com/warahiko/items/3676f1164f4619e8debc
