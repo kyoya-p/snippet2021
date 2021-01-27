@@ -5,6 +5,7 @@ plugins {
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
 
@@ -13,6 +14,6 @@ dependencies({
     //implementation(group = "org.openapitools", name = "openapi-generator-maven-plugin", version = "5.0.0")
     //implementation(group = "org.openapitools", name = "openapi-generator-cli", version = "5.0.0")
 
-    implementation(project("genApi"))
-    implementation(project("gen:srdm"))
+    implementation(project(":genapi"))
+    //implementation(project(":gen:srdm"))
 })
