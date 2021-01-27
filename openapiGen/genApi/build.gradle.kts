@@ -1,6 +1,6 @@
 
 plugins {
-    kotlin("jvm") //version "1.4.21"
+    //kotlin("jvm") //version "1.3.50"
     id("org.openapi.generator") version "5.0.0"
 }
 
@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+   //implementation(kotlin("stdlib"))
 }
 
 val apiName = "srdm"

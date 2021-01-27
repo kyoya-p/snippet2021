@@ -1,8 +1,7 @@
 plugins {
-    kotlin("jvm") version "1.3.50"
+    kotlin("jvm") // version "1.4.21"
     //`kotlin-dsl`
     //kotlin("plugin.serialization") version "1.4.21"
-    id("org.openapi.generator") version "5.0.0"
 }
 
 /*
@@ -23,6 +22,5 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation(project("genApi"))
     implementation(project("gen:srdm"))
 }
