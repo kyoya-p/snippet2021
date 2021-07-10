@@ -9,6 +9,7 @@ fun date() {
 
     println(currentMoment)
     println(datetimeInUtc)
+    println(datetimeInSystemZone)
     datetimeInSystemZone.run {
         println("$year/$monthNumber/$dayOfMonth(${dayOfWeek}) $hour:$minute:$second")
     }
