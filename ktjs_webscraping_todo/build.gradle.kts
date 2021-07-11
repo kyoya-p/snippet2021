@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-js"))
+    implementation("io.ktor:ktor-client-js:1.6.1") // https://mvnrepository.com/artifact/io.ktor/ktor-client-js
 }
 
 kotlin {
