@@ -2,8 +2,10 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import kotlinx.browser.document
 
-fun main() {
-    document.write("Hello, world!")
+suspend fun main() {
+//    document.write("Hello, world!")
+    val r = getBSShopBattleInfo()
+    document.write(r)
 }
 
 // JSから呼び出される関数
