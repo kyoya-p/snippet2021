@@ -30,6 +30,7 @@ kotlin {
                     webpackConfig.cssSupport.enabled = true
                 }
             }
+
         }
         binaries.executable()
     }
