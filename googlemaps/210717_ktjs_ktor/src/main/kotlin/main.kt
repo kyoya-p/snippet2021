@@ -83,6 +83,7 @@ suspend fun main() {
 @FlowPreview
 @DelicateCoroutinesApi
 fun main2(map: dynamic) = GlobalScope.promise {
+    prefList()
 
     map.setCenter(LatLng(app.lat, app.lng))
     map.setZoom(app.zoom)
@@ -111,11 +112,14 @@ fun main2(map: dynamic) = GlobalScope.promise {
         val marker = Marker(map, LatLng(g.geometry.location.lat, g.geometry.location.lng), shop.name)
         marker.addListener("click") {
             infoWindow.close()
-            val cont = "${shop.name}\n${b.date}${b.time}"
-            infoWindow.setContent(cont.toString())
+            val cont = "<p>${shop.name}<p>" + shop.battles.joinToString("") {
+                "<p>${it.date}${it.time}:${it.cond} ${it.members}<p>"
+            }
+            infoWindow.setContent(cont)
             infoWindow.open(map, marker)
         }
 
         delay(300)
     }
 }
+
