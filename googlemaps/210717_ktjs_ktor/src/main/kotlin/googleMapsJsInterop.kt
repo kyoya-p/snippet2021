@@ -9,6 +9,8 @@ fun Marker(m: dynamic, p: dynamic, t: String, clickEventFunc: (ev: dynamic) -> U
 
 fun InfoWindow() = js("""new google.maps.InfoWindow()""")
 
-fun Geocoder(): dynamic = js("new google.maps.Geocoder()")
-fun Geocode(geocoder: dynamic, addr: String, op: (results: dynamic, status: String) -> Unit): dynamic =
-    js("geocoder.geocode({'address':addr,'region':'jp'},op)")
+fun jsGeocoder(): dynamic = js("new google.maps.Geocoder()")
+fun jsGeocode(geocoder: dynamic, addr: String, op: (results: dynamic, status: String) -> Unit): dynamic {
+    console.log("geocoder($addr)")
+    return js("geocoder.geocode({'address':addr,'region':'jp'},op)")
+}
