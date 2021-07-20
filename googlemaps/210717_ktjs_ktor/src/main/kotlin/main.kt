@@ -9,7 +9,9 @@ import kotlinx.browser.window
 import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
+import kotlin.js.Date
 import kotlin.js.Promise
 
 
@@ -26,7 +28,7 @@ data class Location(val lat: Double, val lng: Double)
 data class GeocoderGeometry(val location: Location)
 
 @Serializable
-data class GeocodeRes(
+data class Geocode(
     val formatted_address: String,
     val geometry: GeocoderGeometry,
     val address_components: List<GeocoderAddressComponent>,
@@ -36,47 +38,70 @@ data class GeocodeRes(
 @Serializable
 data class GeocoderAddressComponent(val long_name: String, val short_name: String, val types: List<String>)
 
-class AppSetting {
+class App {
     val appId = "bsShopMap"
+    val json = Json { ignoreUnknownKeys = true }
+
+    // localStorageに型が一致するかつ最近の情報があればそれを、無ければNullを返す
+    inline fun <reified T> getter(key: String): T? = kotlin.runCatching {
+        window.localStorage.getItem("$appId.$key")?.let { json.decodeFromString<Pair<Date, T>?>(it)?.second }
+    }.getOrNull()
+
+    // localStorageに時間情報とともに書き込む
+    inline fun <reified T> setter(key: String, value: T) =
+        window.localStorage.setItem("$appId.$key", json.encodeToString(Date.now() to value))
+
     var lat
-        get() = window.localStorage.getItem("$appId.location.lat")?.toDouble() ?: 34.6485976
-        set(v: Double) = window.localStorage.setItem("$appId.location.lat", v.toString())
+        get() = getter<Double>("location.lat") ?: 34.6485976
+        set(v) = setter("location.lat", v.toString())
     var lng
-        get() = window.localStorage.getItem("$appId.location.lng")?.toDouble() ?: 135.7824642
-        set(v: Double) = window.localStorage.setItem("$appId.location.lng", v.toString())
+        get() = getter<Double>("location.lng") ?: 135.7824642
+        set(v) = setter("location.lng", v.toString())
     var zoom
-        get() = window.localStorage.getItem("$appId.location.zoom")?.toInt() ?: 17
-        set(v: Int) = window.localStorage.setItem("$appId.location.zoom", v.toString())
-}
+        get() = getter<Int>("location.zoom") ?: 17
+        set(v) = setter("location.zoom", v.toString())
 
-var app = AppSetting()
-
-private val json = Json { ignoreUnknownKeys = true }
-
-@ExperimentalCoroutinesApi
-fun geocodePromise(geocoder: dynamic, addr: String) = Promise<GeocodeRes> { resolve, reject ->
-    jsGeocode(geocoder, addr) { results: dynamic, status: String ->
-        if (status == "OK") resolve(json.decodeFromString<List<GeocodeRes>>(JSON.stringify(results)).last())
-        else reject(Exception("Error: geocodePromise(addr=$addr):status=$status"))
-    }
-}
-
-suspend fun geocode(geocoder: dynamic, addr: String): GeocodeRes? {
-    repeat(10) { i ->
-        runCatching {
-            return geocodePromise(geocoder, addr).await()
-        }.onFailure { ex ->
-            console.log("Exception: ${ex.message}")
+    suspend fun getShopsInfo(pref: Int): List<Shop> {
+        suspend fun getShopFromSite(pref: Int): List<Shop> {
+            // val url = "https://www.battlespirits.com/shopbattle/list.php?pref=24"
+            val client = HttpClient { install(JsonFeature) { serializer = KotlinxSerializer() } }
+            fun url(pref: Int) = "https://asia-northeast1-bsbattlemap.cloudfunctions.net/getshop?pref=$pref"
+            val shops = Json.decodeFromString<List<Shop>>(client.get(url(pref)))
+            return shops
         }
-        console.log("geocode($addr) retry[$i]")
-        delay((100 * 2.0.pow(i)).toLong())
+
+        val key = "pref.$pref"
+        return getter(key) ?: getShopFromSite(pref).also { setter(key, it) }
     }
-    return null
+
+    suspend fun getGeocode(geocoder: dynamic, addr: String): Geocode? {
+        return getter("geocode.$addr") ?: geocode(geocoder, addr)?.also { setter("geocode.$addr", it) }
+    }
+
+    @ExperimentalCoroutinesApi
+    fun geocodePromise(geocoder: dynamic, addr: String) = Promise<Geocode> { resolve, reject ->
+        jsGeocode(geocoder, addr) { results: dynamic, status: String ->
+            if (status == "OK") resolve(app.json.decodeFromString<List<Geocode>>(JSON.stringify(results)).last())
+            else reject(Exception("Error: geocodePromise(addr=$addr):status=$status"))
+        }
+    }
+
+    suspend fun geocode(geocoder: dynamic, addr: String): Geocode? {
+        repeat(10) { i ->
+            runCatching {
+                return geocodePromise(geocoder, addr).await()
+            }.onFailure { ex ->
+                console.log("Exception: ${ex.message}")
+            }
+            console.log("geocode($addr) retry[$i]")
+            delay((100 * 2.0.pow(i)).toLong())
+        }
+        return null
+    }
 }
 
-var prefShopList = mutableMapOf<String, List<Shop>>()
-
-fun addShops(prefMap: Map<GeocodeRes, Int>, loc: Location) {
+var app = App()
+fun addShops(prefMap: Map<Geocode, Int>, loc: Location) {
     operator fun Location.minus(o: Location) = ((lat - o.lat).pow(2) + (lng - o.lng).pow(2)).pow(0.5)
     val a = prefMap.entries.sortedBy { (g, i) -> g.geometry.location - loc }.first()
     console.log("Loc=$a")
@@ -112,13 +137,8 @@ suspend fun main() {
 fun main2(map: dynamic) = GlobalScope.promise {
     val geocoder = jsGeocoder()
     val prefMap = prefList()
-        //.toList().asFlow().buffer(1)
-        .mapNotNull { (k, v) -> geocode(geocoder, v)?.let { it to k } }
-        //.toList()
+        .mapNotNull { (k, v) -> app.getGeocode(geocoder, v)?.let { it to k } }
         .toMap()
-    prefMap.keys.forEach {
-        console.log(it)
-    }
     map.setCenter(LatLng(app.lat, app.lng))
     map.setZoom(app.zoom)
 
@@ -134,13 +154,12 @@ fun main2(map: dynamic) = GlobalScope.promise {
         Unit
     }
     val infoWindow = InfoWindow()
-    val client = HttpClient { install(JsonFeature) { serializer = KotlinxSerializer() } }
-
-    // val url = "https://www.battlespirits.com/shopbattle/list.php?pref=24"
-    fun url(pref: Int) = "https://asia-northeast1-bsbattlemap.cloudfunctions.net/getshop?pref=$pref"
-    val shops = (30..30).flatMap { Json.decodeFromString<List<Shop>>(client.get(url(it))) }
+//    val client = HttpClient { install(JsonFeature) { serializer = KotlinxSerializer() } }
+//    // val url = "https://www.battlespirits.com/shopbattle/list.php?pref=24"
+//    fun url(pref: Int) = "https://asia-northeast1-bsbattlemap.cloudfunctions.net/getshop?pref=$pref"
+    val shops = app.getShopsInfo(30)
     shops.forEach { shop ->
-        val g = geocodePromise(geocoder, shop.addr).await()
+        val g = app.getGeocode(geocoder, shop.addr)!!
 
         val marker = Marker(map, LatLng(g.geometry.location.lat, g.geometry.location.lng), shop.name)
         marker.addListener("click") {
