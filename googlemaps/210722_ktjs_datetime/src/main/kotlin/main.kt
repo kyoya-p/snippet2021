@@ -3,8 +3,12 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.last
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 
 
+@ExperimentalTime
 @DelicateCoroutinesApi
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -29,26 +33,58 @@ suspend fun main() {
     )
 }
 
-fun test() {
+@ExperimentalTime
+suspend fun test() = runCatching {
+    fun assert(op: () -> Boolean): Unit {
+        if (!op()) throw Exception("Test failed")
+    }
 
-    val a = app.getterRaw<String>("a") == "qwert"
+    app.setterRaw<String>("z", "z")
+    val z = app.getterRaw<String>("z")
+    println("z=[$z]")
+    println("1")
+    val a = app.getter<String>("a")
+    assert { a == null }
+
+    println("2")
+    app.setter<String>("a", "qwert", app.now())
+    println("3")
+    assert { app.getter<String>("a") == null }
+    app.setter<String>("a", "qwert", app.now() + seconds(3))
+
+    val x = app.getter<String>("a")
+    println("4:[$x]")
+    assert { x == "qwert" }
+
+    delay(seconds(0.5))
+    println("5")
+    assert { app.getter<String>("a") == "qwert" }
+    delay(seconds(1))
+    println("6")
+    assert { app.getter<String>("a") == "qwert" }
+    println("6")
+    delay(seconds(1))
+    assert { app.getter<String>("a") == "qwert" }
+    println("7")
+    delay(seconds(1))
+    assert { app.getter<String>("a") == null }
+
+    val v = app.shopsFlow().last()
+    assert { v.name == "沖縄県" }
+}.onFailure { ex -> println("Failed: $ex"); ex.printStackTrace() }
+    .onSuccess { println("Passed") }
 
 
-}
-
-
+@ExperimentalTime
 @ExperimentalCoroutinesApi
 @FlowPreview
 @DelicateCoroutinesApi
 fun main2(map: dynamic) = GlobalScope.promise {
-    app.shopsFlow().collect {
-        println(it)
-    }
-    return@promise
 
     val prefMap = prefList()
         .mapNotNull { (k, v) -> app.getGeocode(v)?.let { it to k } }
         .toMap()
+
     map.setCenter(LatLng(app.lat, app.lng))
     map.setZoom(app.zoom)
 
@@ -67,6 +103,8 @@ fun main2(map: dynamic) = GlobalScope.promise {
 //    val client = HttpClient { install(JsonFeature) { serializer = KotlinxSerializer() } }
 //    // val url = "https://www.battlespirits.com/shopbattle/list.php?pref=24"
 //    fun url(pref: Int) = "https://asia-northeast1-bsbattlemap.cloudfunctions.net/getshop?pref=$pref"
+
+
     app.shopsFlow().collect { shop ->
         val g = app.getGeocode(shop.addr)!!
 
@@ -79,8 +117,7 @@ fun main2(map: dynamic) = GlobalScope.promise {
             infoWindow.setContent(cont)
             infoWindow.open(map, marker)
         }
-
-        delay(300)
+        delay(10)
     }
 }
 

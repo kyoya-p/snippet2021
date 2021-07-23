@@ -17,6 +17,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-serialization:1.5.20")
     implementation("io.ktor:ktor-client-json-js:$ktorVersion")
     implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.1")
 }
 
 kotlin {
