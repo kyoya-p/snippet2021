@@ -71,6 +71,3 @@ val bsPrefData = """
 </ul>
 </div>
 """
-
-
-

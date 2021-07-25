@@ -17,13 +17,18 @@ import kotlinx.serialization.json.Json
 import org.w3c.dom.get
 import org.w3c.dom.parsing.DOMParser
 import kotlin.js.Promise
-import kotlin.math.pow
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 
 @Serializable
 data class Battle(val date: String, val time: String, val cond: String, val cost: String, val members: String)
+
+fun Battle.iso8601() = "${date}${time}".match("""(\d\d\d\d).*(\d\d).*(\d\d).*(\d\d):(\d\d)""")
+    ?.drop(1)
+    ?.let { (Y, M, D, h, m) -> "$Y-$M-${D}T$h:$m:00+09:00" }!!
+
+fun Battle.dateTime() = Instant.parse(iso8601())
 
 @Serializable
 data class Shop(val name: String, val addr: String, val battles: List<Battle>)

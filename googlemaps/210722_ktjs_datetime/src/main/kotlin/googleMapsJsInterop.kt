@@ -9,7 +9,7 @@ fun Marker(map: dynamic, pos: dynamic, t: String, clickEventFunc: (ev: dynamic) 
     return marker
 }
 
-fun InfoWindow() = js("""new google.maps.InfoWindow()""")
+fun InfoWindow() = js("new google.maps.InfoWindow()")
 
 fun jsGeocoder(): dynamic = js("new google.maps.Geocoder()")
 
@@ -22,3 +22,7 @@ fun jsGeocode(geocoder: dynamic, pos: LatLng, op: (results: dynamic, status: Str
     console.log("geocode({'latLng':$pos})")
     return js("geocoder.geocode({'latLng':{'lat':pos.lat,'lng':pos.lng}},op)")
 }
+
+
+fun jsIcon(scale: Int = 16, color: String = "#FF0000",opa:Double=0.6) =
+    js("{icon:{scale:scale,fillColor:color,fillOpacity:opa,path:google.maps.SymbolPath.CIRCLE,strokeColor:'#FFFFFF',strokeWeight:1.0}}")

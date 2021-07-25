@@ -1,10 +1,16 @@
 import google.maps.interop.InfoWindow
-import google.maps.interop.jsLatLng
+import google.maps.interop.jsIcon
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime
@@ -41,7 +47,6 @@ fun main2(map: dynamic) = GlobalScope.promise {
     launch {
         app.start()
     }
-    // 最後に表示していた座標を再現
 
     val infoWindow = InfoWindow()
     val prefList = app.prefList()
@@ -49,17 +54,35 @@ fun main2(map: dynamic) = GlobalScope.promise {
         val g = app.geocode(addr = shop.addr, 10)
         if (g == null) {
             println("Error: ZERO_RESULT: geocode(${shop.addr}) ")
-        } else {
-            println("Addr[$i]:${shop.addr}->${g.formatted_address}")
-            val marker = app.addShopMarker(shop, g.geometry.location) { }
-            marker.addListener("click") {
-                infoWindow.close()
-                val cont = "<p>${shop.name}<p>" + shop.battles.joinToString("") { btl ->
-                    "<p>${btl.date}${btl.time}:${btl.cond} ${btl.members}<p>"
-                }
-                infoWindow.setContent(cont)
-                infoWindow.open(map, marker)
+            return@forEachIndexed
+        }
+        val futureBattles = shop.battles.filter { b -> b.dateTime() > Clock.System.now() } //現在以降のバトル
+        val nextBattle = futureBattles.minByOrNull { b -> b.dateTime() }
+        val nextBattleTime = nextBattle?.dateTime()
+        val now = Clock.System.now()
+        val scale = when {
+            nextBattleTime == null -> 6
+            nextBattleTime - now < days(1) -> 14
+            nextBattleTime - now < days(2) -> 12
+            else -> 8
+        }
+        val opa = when {
+            else -> 0.8
+        }
+        val color = when {
+            nextBattle?.cost == "無料 " -> "#FF2020"
+            else -> "#804040"
+        }
+        val marker = app.addShopMarker(shop, g.geometry.location) { }
+        marker.setOptions(jsIcon(scale = scale, color = color, opa = opa))
+        marker.addListener("click") {
+            infoWindow.close()
+            val cont = "<p>${shop.name}<p>" + shop.battles.joinToString("") { b ->
+                "<p>${b.date}${b.time}:${b.cond} ${b.cost} ${b.members}<p>"
             }
+            infoWindow.setContent(cont)
+            infoWindow.open(map, marker)
+
         }
     }
 
