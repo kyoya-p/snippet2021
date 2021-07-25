@@ -63,18 +63,15 @@ fun main2(map: dynamic) = GlobalScope.promise {
         val scale = when {
             nextBattleTime == null -> 6
             nextBattleTime - now < days(1) -> 14
-            nextBattleTime - now < days(2) -> 12
+            nextBattleTime - now < days(2) -> 10
             else -> 8
-        }
-        val opa = when {
-            else -> 0.8
         }
         val color = when {
             nextBattle?.cost == "無料 " -> "#FF2020"
             else -> "#804040"
         }
         val marker = app.addShopMarker(shop, g.geometry.location) { }
-        marker.setOptions(jsIcon(scale = scale, color = color, opa = opa))
+        marker.setOptions(jsIcon(scale = scale, color = color, opa = 0.8))
         marker.addListener("click") {
             infoWindow.close()
             val cont = "<p>${shop.name}<p>" + shop.battles.joinToString("") { b ->
