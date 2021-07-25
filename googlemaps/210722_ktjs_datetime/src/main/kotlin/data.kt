@@ -72,17 +72,5 @@ val bsPrefData = """
 </div>
 """
 
-// https://rennnosukesann.hatenablog.com/entry/2018/03/18/231401
-fun prefList(): Map<Int, String> {
-    val dom = DOMParser().parseFromString(bsPrefData, "text/html")
-    val aList = dom.getElementsByTagName("a")
-    return (0 until aList.length).mapNotNull { i -> aList[i] }.mapNotNull { e ->
-        runCatching {
-            val a = e.attributes["href"]!!
-            val pref = a.value.match("""list\.php\?pref=(\d+)""")?.get(1)?.toInt()!!
-            pref to (e.textContent ?: "")
-        }.getOrNull()
-    }.toMap()
-}
 
 

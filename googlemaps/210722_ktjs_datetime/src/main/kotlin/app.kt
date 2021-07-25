@@ -1,21 +1,21 @@
+import google.maps.interop.Marker
 import google.maps.interop.jsGeocode
 import google.maps.interop.jsGeocoder
+import google.maps.interop.jsLatLng
 import io.ktor.client.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import kotlinx.browser.window
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.await
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
+import org.w3c.dom.get
+import org.w3c.dom.parsing.DOMParser
 import kotlin.js.Promise
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.days
@@ -29,10 +29,13 @@ data class Battle(val date: String, val time: String, val cond: String, val cost
 data class Shop(val name: String, val addr: String, val battles: List<Battle>)
 
 @Serializable
-data class Location(val lat: Double, val lng: Double)
+data class Pref(val name: String, val prefId: Int)
 
 @Serializable
-data class GeocoderGeometry(val location: Location)
+data class LatLng(val lat: Double, val lng: Double)
+
+@Serializable
+data class GeocoderGeometry(val location: LatLng)
 
 @Serializable
 data class Geocode(
@@ -45,10 +48,27 @@ data class Geocode(
 @Serializable
 data class GeocoderAddressComponent(val long_name: String, val short_name: String, val types: List<String>)
 
-class App {
+@ExperimentalTime
+class App(val map: dynamic) {
     val appId = "bsShopMap"
     val json = Json { ignoreUnknownKeys = true }
     val geocoder by lazy { jsGeocoder() }
+
+    suspend fun start() {
+        map.setCenter(jsLatLng(center.lat, center.lng))
+        map.setZoom(zoom)
+        callbackFlow {
+            map.addListener("dragend") { trySend(null) }
+            map.addListener("zoom_changed") { trySend(null) }
+            awaitClose {}
+        }.collectLatest {
+            val c = map.getCenter()
+            center = LatLng(c.lat(), c.lng())
+            val z = map.getZoom()
+            zoom = z
+            println("drag/zoom ($center,$zoom)")
+        }
+    }
 
     inline fun <reified T> getterRaw(key: String): T? = kotlin.runCatching {
         window.localStorage.getItem("$appId.$key")?.let { json.decodeFromString<T>(it) }
@@ -79,89 +99,111 @@ class App {
         setterRaw("$key._t", limit.toEpochMilliseconds())
     }
 
-    @ExperimentalTime
-    var lat
-        get() = getter<Double>("location.lat") ?: 34.6485976
-        set(v) = setter("location.lat", v.toString())
+    /*    @ExperimentalTime
+        var lat
+            get() = getter<Double>("location.lat") ?: 34.6485976
+            set(v) = setter("location.lat", v.toString())
 
-    @ExperimentalTime
-    var lng
-        get() = getter<Double>("location.lng") ?: 135.7824642
-        set(v) = setter("location.lng", v.toString())
+        @ExperimentalTime
+        var lng
+            get() = getter<Double>("location.lng") ?: 135.7824642
+            set(v) = setter("location.lng", v.toString())
+     */
+    var center: LatLng
+        get() = getter("location.pos") ?: LatLng(34.648597, 135.7824642)
+        set(pos) = setter("location.pos", pos)
 
     @ExperimentalTime
     var zoom
         get() = getter<Int>("location.zoom") ?: 17
         set(v) = setter("location.zoom", v.toString())
 
-    // 住所から座標を取得。住所が不正ならnullを返す。localStorageに保存する
-    @ExperimentalTime
-    suspend fun getGeocode(addr: String): Geocode? {
-        val g1 = getter<Geocode>("geocode.$addr")
-        if (g1 != null) return g1
-        val g2 = geocode(geocoder, addr)
-        if (g2 == null) return null
-        setter("geocode.$addr", g2)
-        return g2
+    // https://rennnosukesann.hatenablog.com/entry/2018/03/18/231401
+    fun prefList(): List<Pref> {
+        val dom = DOMParser().parseFromString(bsPrefData, "text/html")
+        val aList = dom.getElementsByTagName("a")
+        return (0 until aList.length).mapNotNull { i -> aList[i] }.mapNotNull { e ->
+            runCatching {
+                val a = e.attributes["href"]!!
+                val pref = a.value.match("""list\.php\?pref=(\d+)""")?.get(1)?.toInt()!!
+                pref to (e.textContent ?: "")
+            }.getOrNull()
+        }.map { Pref(it.second, it.first) }
     }
 
     // ショップリストのFlowを返す。localStorageに保存する(有効期限12時間)
     @ExperimentalTime
     @ExperimentalCoroutinesApi
     @FlowPreview
-    suspend fun shopsFlow() = channelFlow<Shop> {
-        val key = "shops"
-        val shops0 = getter<List<Shop>>(key)
-        if (shops0 != null) {
-            shops0.forEachIndexed { i, shop ->
-                while (trySend(shop).isFailure) {
-                    println("Fail: trySend(${shop.name} : ${shop.addr})")
-                    delay(300)
+    suspend fun shopsFlow(prefId: Int): Flow<Shop> {
+        val key = "shops($prefId)"
+        val shops1 = getter<List<Shop>>(key)
+        if (shops1 != null) return shops1.asFlow()
+
+        // val url = "https://www.battlespirits.com/shopbattle/list.php?pref=24"
+        val client = HttpClient { install(JsonFeature) { serializer = KotlinxSerializer() } }
+        val url = "https://asia-northeast1-bsbattlemap.cloudfunctions.net/getshop?pref=$prefId"
+        val shops2 = Json.decodeFromString<List<Shop>>(client.get<String>(url))
+        setter(key, shops2, now() + hours(12))
+        return shops2.asFlow()
+    }
+
+    @ExperimentalTime
+    fun geocode0(
+        pos: LatLng? = null,
+        addr: String? = null,
+        retry: Int,
+        itv: Int,
+        op: (Geocode?, String) -> Unit
+    ): Unit {
+        val key = "geocode_" + when {
+            pos != null -> json.encodeToString(pos)
+            addr != null -> json.encodeToString(addr)
+            else -> throw Exception("Exception: Parameter Type mismatch")
+        }
+
+        getter<Geocode>(key)?.let { op(it, "OK"); return }
+
+        val op0: (dynamic, String) -> Unit = { results, status ->
+            //println("Status=$status")
+            when {
+                status == "OK" -> {
+                    val g = json.decodeFromString<List<Geocode>>(JSON.stringify(results)).firstOrNull()
+                    if (g != null) setter(key, g)
+                    op(g, status)
+                }
+                status != "OVER_QUERY_LIMIT" -> op(null, status)
+                retry == 0 -> op(null, status)
+                else -> {
+                    console.log("geocode() retry(remaining:$retry,interval:$itv)")
+                    window.setTimeout({ geocode0(pos, addr, retry - 1, itv * 2, op) }, itv)
                 }
             }
-        } else {
-            // val url = "https://www.battlespirits.com/shopbattle/list.php?pref=24"
-            val client = HttpClient { install(JsonFeature) { serializer = KotlinxSerializer() } }
-            val shops = prefList().entries.asFlow().flatMapMerge { (prefNo, prefName) ->
-                println()
-                print("$prefNo:$prefName - ")
-                val url = "https://asia-northeast1-bsbattlemap.cloudfunctions.net/getshop?pref=$prefNo"
-                Json.decodeFromString<List<Shop>>(client.get<String>(url)).asFlow()
-                    .map { it.also { trySend(it).isSuccess } }
-            }.toList()
-            setter(key, shops, now() + hours(12))
+        }
+        when {
+            pos != null -> jsGeocode(geocoder, pos, op0)
+            addr != null -> jsGeocode(geocoder, addr, op0)
+            else -> throw Exception("Exception: Parameter Type mismatch")
         }
     }
 
-    @ExperimentalCoroutinesApi
-    fun geocodePromise(geocoder: dynamic, addr: String) = Promise<Geocode> { resolve, reject ->
-        jsGeocode(geocoder, addr) { results: dynamic, status: String ->
-            if (status == "OK") resolve(
-                app.json.decodeFromString<List<Geocode>>(JSON.stringify(results)).last()
-            )
-            else reject(Exception("Error: geocodePromise(addr=$addr):status=$status"))
-        }
-
-    }
-
-    suspend fun geocode(geocoder: dynamic, addr: String): Geocode? {
-        repeat(10) { i ->
-            runCatching {
-                return geocodePromise(geocoder, addr).await()
-            }.onFailure { ex ->
-                console.log("Exception: ${ex.message}")
+    fun geocodeP(pos: LatLng? = null, addr: String? = null, retry: Int = 0, itv: Int = 200) =
+        Promise<Geocode?> { res, err ->
+            geocode0(pos, addr, retry, itv) { g, st ->
+                res(g)
             }
-            console.log("geocode($addr) retry[$i]")
-            delay((100 * 2.0.pow(i)).toLong())
         }
-        return null
-    }
+
+    suspend fun geocode(pos: LatLng, retry: Int = 0, itv: Int = 200) =
+        geocodeP(pos = pos, retry = retry, itv = itv).await()
+
+    suspend fun geocode(addr: String, retry: Int = 0, itv: Int = 200) =
+        geocodeP(addr = addr, retry = retry, itv = itv).await()
+
+    fun addShopMarker(shop: Shop, pos: LatLng, onClick: (dynamic) -> Unit = {}): dynamic =
+        Marker(map, pos, shop.name, onClick)
+
+
 }
 
-var app = App()
-fun addShops(prefMap: Map<Geocode, Int>, loc: Location) {
-    operator fun Location.minus(o: Location) = ((lat - o.lat).pow(2) + (lng - o.lng).pow(2)).pow(0.5)
-    val a = prefMap.entries.sortedBy { (g, i) -> g.geometry.location - loc }.first()
-    console.log("Loc=$a")
-}
 
