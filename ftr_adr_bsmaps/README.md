@@ -1,3 +1,26 @@
+Android Flutter project
+===
+
+環境
+---
+- Windows 10
+  - ADB Driver を 2021/7/25時点の最新に更新 
+- Java - Adopt Open JDK 8  
+- Android Studio
+  - Flutter/Dart plugin
+  - Android SDK 5~12
+
+
+Google Maps
+---
+https://pub.dev/packages/google_maps_flutter
+
+
+
+
+
+
+
 # ftr_adr_bsmaps
 
 A new Flutter project.
