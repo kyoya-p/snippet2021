@@ -14,13 +14,13 @@ plugins {
     application
     kotlin("jvm") version "1.5.0"
     id("com.google.protobuf") version "0.8.16"
-    id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
+    //id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
 }
 
 repositories {
     mavenLocal()
     google()
-    jcenter()
+    //jcenter()
     mavenCentral()
 }
 
@@ -69,14 +69,14 @@ sourceSets {
             "build/generated/source/proto/main/grpc",
             "build/generated/source/proto/main/grpckt",
             "build/generated/source/proto/main/java",
-            "build/generated/source/proto/main/kotlin",
+            "build/generated/source/proto/main/kotlin"
         )
-
     }
 }
 
 application {
-    mainClass.set("io.grpc.examples.helloworld.HelloWorldServerKt")
+    //mainClass.set("io.grpc.examples.helloworld.HelloWorldServerKt")
+    mainClass.set("az_est_cosmos.AzEstSvrKt")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
