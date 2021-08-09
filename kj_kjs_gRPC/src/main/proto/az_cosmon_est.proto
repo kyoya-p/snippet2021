@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package az_est_cosmos;
+
+option java_multiple_files = true;
+
+service AzEstCosmos {
+  rpc Estimate (EstimateReq) returns (EstimateRes) {}
+}
+
+message EstimateReq {
+  optional LoginInfo loginInfo = 1;
+  repeated EstParams params = 2;
+}
+
+message EstimateRes {
+  repeated EstResult results = 1;
+}
+
+message LoginInfo {
+  string id = 1;
+  string secret = 2;
+  enum IDP{
+    MSA = 0;
+    AAD = 1;
+  }
+  IDP idp = 3;
+}
+
+message EstParams{
+  int64 pTotalDataStoredGB = 1;
+  int64 pItemSizeKB = 2;
+  int64 pFind = 3;
+  int64 pInser = 4;
+  int64 pUpdate = 5;
+}
+
+message EstResult{
+  string storageCostPerMonth = 1;
+  string throughputRequired = 2;
+  string totalCostPerMonth = 3;
+  string workloadCostPerMonth = 4;
+}
+
+
