@@ -75,7 +75,6 @@ sourceSets {
 }
 
 application {
-    //mainClass.set("io.grpc.examples.helloworld.HelloWorldServerKt")
     mainClass.set("az_est_cosmos.AzEstSvrKt")
 }
 
@@ -85,10 +84,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
     }
 }
 
-tasks.register<JavaExec>("HelloWorldClient") {
+tasks.register<JavaExec>("runGrpcClient") {
     dependsOn("classes")
     classpath = sourceSets["main"].runtimeClasspath
-    main = "io.grpc.examples.helloworld.HelloWorldClientKt"
+    main = "az_est_cosmos.AzEstReqKt"
 }
 
 val otherStartScripts = tasks.register<CreateStartScripts>("otherStartScripts") {
