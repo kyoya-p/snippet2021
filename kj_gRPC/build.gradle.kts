@@ -15,6 +15,7 @@ plugins {
     kotlin("jvm") version "1.5.0"
     id("com.google.protobuf") version "0.8.16"
     //id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
 repositories {

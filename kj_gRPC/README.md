@@ -1,1 +1,1 @@
-https://qiita.com/drafts/e3e9d949ea1e122b4882/edit
+https://qiita.com/shokkaa/private/e3e9d949ea1e122b4882
