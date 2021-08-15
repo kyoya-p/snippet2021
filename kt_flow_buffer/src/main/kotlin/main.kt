@@ -174,12 +174,11 @@ suspend fun sampleDispatchers() = coroutineScope {
     }
 
     // ブロッキング関数をsuspend関数にラッピング
-    suspend fun suspendLoad(): String {
-        return suspendCoroutine { continuation ->
-            val res = blockingLoad()
-            continuation.resume(res) // return res の代わり
-        }
+    suspend fun suspendLoad(): String = suspendCoroutine { continuation ->
+        val res = blockingLoad()
+        continuation.resume(res) // return res の代わり
     }
+
 
     val start = Clock.System.now()
     fun now() = (Clock.System.now() - start).inWholeMilliseconds
