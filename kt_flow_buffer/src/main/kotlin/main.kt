@@ -9,18 +9,18 @@ import kotlin.time.ExperimentalTime
 @ExperimentalCoroutinesApi
 @ExperimentalTime
 fun main() = runBlocking {
-    main_collect()
-    main_buffer()
-    main_collectLatest()
-    main_flatMapLatest()
-    main_flatMapConcat()
-    main_flatMapMerge()
-    main_Dispatchers()
+    sampleCollect()
+    sampleBuffer()
+    sampleCollectLatest()
+    sampleFlatMapLatest()
+    sampleFlatMapConcat()
+    sampleFlatMapMerge()
+    sampleDispatchers()
 }
 
 @ExperimentalTime
-suspend fun main_collect() {
-    println("main_collect()")
+suspend fun sampleCollect() {
+    println("sampleCollect()")
     // collect() すべての入力を処理する。入力処理が終わるまで次の入力を受け付けない。
     // デフォルトでは出力と入力処理に必要な時間の総和が全体の処理時間となる
     // この例では、(100ms+200ms)*repeat(4)=900msの時間がかかる
@@ -39,8 +39,8 @@ suspend fun main_collect() {
 }
 
 @ExperimentalTime
-suspend fun main_buffer() {
-    println("main_buffer()")
+suspend fun sampleBuffer() {
+    println("sampleBuffer()")
     // buffer(): イベントをバッファする
     // この例では、
     // バッファが十分にあるためソースは出力処理の後シンクが入力処理を終わる前に次の出力が可能
@@ -61,8 +61,8 @@ suspend fun main_buffer() {
 }
 
 @ExperimentalTime
-suspend fun main_collectLatest() {
-    println("main_collectLatest()")
+suspend fun sampleCollectLatest() {
+    println("sampleCollectLatest()")
     // collectLatest{} イベントが発生したとき、実行中のシンクの処理を中断する。
     // この例では
     // イベントの処理中かならず次のイベントが発生する。その場合処理が中断する。
@@ -83,8 +83,8 @@ suspend fun main_collectLatest() {
 
 @ExperimentalCoroutinesApi
 @ExperimentalTime
-suspend fun main_flatMapLatest() {
-    println("main_flatMapLatest()")
+suspend fun sampleFlatMapLatest() {
+    println("sampleFlatMapLatest()")
     // flatMapLatest{} 入力があったとき、出力処理をキャンセルする。 collectLatest()同様
     // この例では
     // 100ms*3 + 60ms*3 = 480ms の全体処理時間となる
@@ -110,8 +110,8 @@ suspend fun main_flatMapLatest() {
 
 @FlowPreview
 @ExperimentalTime
-suspend fun main_flatMapConcat() {
-    println("main_flatMapConcat()")
+suspend fun sampleFlatMapConcat() {
+    println("sampleFlatMapConcat()")
     // flatMapConcat{} 入力に対応し出力する。出力処理完了まで次の入力をブロック。
     // この例では、
     // 100ms*3 + 50ms*3*3 = 750ms 全体の処理に必要
@@ -138,8 +138,8 @@ suspend fun main_flatMapConcat() {
 
 @FlowPreview
 @ExperimentalTime
-suspend fun main_flatMapMerge() {
-    println("main_flatMapMerge()")
+suspend fun sampleFlatMapMerge() {
+    println("sampleFlatMapMerge()")
     // flatMapMerge{} 入力に対応し出力する。出力処理完了を待たず次の入力に対応し出力処理を行う。
     // この例では、
     // 300ms(3回目の出力) + 60ms*3 = 480ms が全体処理時間
@@ -164,8 +164,8 @@ suspend fun main_flatMapMerge() {
 }
 
 @ExperimentalTime
-suspend fun main_Dispatchers() = coroutineScope {
-    println("main_Dispatchers()")
+suspend fun sampleDispatchers() = coroutineScope {
+    println("sampleDispatchers()")
 
     // ブロッキングで結果を返す負荷
     fun blockingLoad(): String {
@@ -185,7 +185,7 @@ suspend fun main_Dispatchers() = coroutineScope {
     fun now() = (Clock.System.now() - start).inWholeMilliseconds
 
     for (i in 0 until 3) {
-        launch { // Dispatchersを指定しない場合、'main'スレッドだけで実行される(1コア)
+        launch { // Dispatchersを指定しない場合、launch{}を実行したスレッド上で実行される(1コア)
             // この例では、総実行時間はブロック関数の処理時間の合計の1000ms*3 = 3000ms
             suspendLoad()
             println("[${now()}]suspendLoad():$i in ${Thread.currentThread().name}")
