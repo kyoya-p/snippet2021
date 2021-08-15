@@ -1,9 +1,8 @@
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.time.ExperimentalTime
 
 @FlowPreview
@@ -16,6 +15,7 @@ fun main() = runBlocking {
     main_flatMapLatest()
     main_flatMapConcat()
     main_flatMapMerge()
+    main_Dispatchers()
 }
 
 @ExperimentalTime
@@ -162,3 +162,47 @@ suspend fun main_flatMapMerge() {
         println("$i - [${now()}]collect")
     }
 }
+
+@ExperimentalTime
+suspend fun main_Dispatchers() = coroutineScope {
+    println("main_Dispatchers()")
+
+    // ブロッキングで結果を返す負荷
+    fun blockingLoad(): String {
+        Thread.sleep(1000)
+        return "result"
+    }
+
+    // ブロッキング関数をsuspend関数にラッピング
+    suspend fun suspendLoad(): String {
+        return suspendCoroutine { continuation ->
+            val res = blockingLoad()
+            continuation.resume(res) // return res の代わり
+        }
+    }
+
+    val start = Clock.System.now()
+    fun now() = (Clock.System.now() - start).inWholeMilliseconds
+
+    for (i in 0 until 3) {
+        launch { // Dispatchersを指定しない場合、'main'スレッドだけで実行される(1コア)
+            // この例では、総実行時間はブロック関数の処理時間の合計の1000ms*3 = 3000ms
+            suspendLoad()
+            println("[${now()}]suspendLoad():$i in ${Thread.currentThread().name}")
+        }
+    }
+    delay(3000)
+
+    for (i in 0 until 3) {
+        launch(Dispatchers.Default) { // Dispatchers.Defaultを指定した場合、用意されたスレッドプール上で実行される(スレッド数はCPUコア数に依存)
+            // この例で、CPUコアが3以上の場合、総実行時間は最長ブロック時間の1000ms
+            suspendLoad()
+            println("[${now()}]suspendLoad():$i in ${Thread.currentThread().name}")
+        }
+    }
+    delay(1000)
+}
+
+
+
+
