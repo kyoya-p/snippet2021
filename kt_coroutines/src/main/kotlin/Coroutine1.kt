@@ -182,7 +182,7 @@ suspend fun s7_Dispatchers() = coroutineScope {
             println("[${now()}]suspendLoad():$i in ${Thread.currentThread().name}")
         }
     }
-    delay(3000)
+    delay(1000)
 
     for (i in 0 until 3) {
         launch(Dispatchers.Default) { // Dispatchers.Defaultを指定した場合、用意されたスレッドプール上で実行される(スレッド数はCPUコア数に依存)
@@ -192,6 +192,8 @@ suspend fun s7_Dispatchers() = coroutineScope {
         }
     }
     delay(1000)
+
+    //もちろん負荷1つに1Threadはもったいないので　ブロッキングではなくコールバックできるならそれを使うべし
 }
 
 
