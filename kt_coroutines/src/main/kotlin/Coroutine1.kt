@@ -1,6 +1,9 @@
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
+import kotlin.concurrent.thread
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.time.ExperimentalTime
 
 
@@ -15,6 +18,7 @@ fun main() = runBlocking {
     s5_FlatMapConcat()
     s6_FlatMapMerge()
     s7_Dispatchers()
+    s8_suspendCoroutine()
 }
 
 @ExperimentalTime
@@ -193,9 +197,38 @@ suspend fun s7_Dispatchers() = coroutineScope {
     }
     delay(1000)
 
-    //もちろん負荷1つに1Threadはもったいないので　ブロッキングではなくコールバックできるならそれを使うべし
+    //もちろん負荷1つに1スレッドはもったいないので　ブロッキングではなくコールバックできるならそれを使うべし
 }
 
 
+@ExperimentalTime
+suspend fun s8_suspendCoroutine() = coroutineScope {
+    println("s8_suspendCoroutine()")
 
+    // コールバックで結果を返す負荷
+    fun callbackLoad(cb: (String) -> Any?) {
+        thread {
+            Thread.sleep(100)
+            cb("result")
+        }
+    }
+
+    val start = Clock.System.now()
+    fun now() = (Clock.System.now() - start).inWholeMilliseconds
+    repeat(3) { i ->
+        suspendCoroutine<String> { continuation ->
+            callbackLoad { res -> continuation.resume(res) }
+        } // resume()が呼ばれるまでサスペンドする
+        println("[${now()}]suspendLoad():$i in ${Thread.currentThread().name}")
+    }
+
+    repeat(3) { i ->
+        launch { // 個別コルーチンで実行
+            suspendCoroutine<String> { continuation ->
+                callbackLoad { res -> continuation.resume(res) }
+            }
+            println("[${now()}]suspendLoad():$i in ${Thread.currentThread().name}")
+        }
+    }
+}
 
